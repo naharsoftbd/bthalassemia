@@ -2,35 +2,39 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class PermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $permissions = [
-            'View',
-            'Create',
-            'Edit',
-            'Delete',
-        ];
+        // Clear cache first
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        foreach ($permissions as $key => $value) {
-            Permission::create(['name' => $value]);
+        // 1️⃣ create permissions
+        $permissions = ['View', 'Create', 'Edit', 'Delete', 'product.create', 'product.update', 'product.delete'];
+
+        $permissionModels = [];
+        foreach ($permissions as $p) {
+            $permissionModels[] = Permission::firstOrCreate(['name' => $p, 'guard_name' => 'api']);
         }
 
-        $adminRole = Role::create(['name' => 'Admin']);
-        $adminRole->givePermissionTo('View');
-        $adminRole->givePermissionTo('Create');
-        $adminRole->givePermissionTo('Edit');
-        $adminRole->givePermissionTo('Delete');
+        // 2️⃣ create roles
+        $adminRole = Role::create(['name' => 'Admin', 'guard_name' => 'api']);
+        $vendorRole = Role::create(['name' => 'Vendor', 'guard_name' => 'api']);
+        $customerRole = Role::create(['name' => 'Customer', 'guard_name' => 'api']);
+
+        // 3️⃣ assign permissions to roles - FIXED APPROACH
+        $adminRole->givePermissionTo($permissions);
+        $vendorRole->givePermissionTo($permissions);
+
+        // For customer role, use only the permissions that definitely exist
+        $customerRole->givePermissionTo(['View', 'Delete']);
 
         $adminUser = User::factory()->create([
             'name' => 'Admin',
@@ -39,12 +43,6 @@ class PermissionSeeder extends Seeder
         ]);
         $adminUser->assignRole($adminRole);
 
-        $vendorRole = Role::create(['name' => 'Vendor']);
-        $vendorRole->givePermissionTo('View');
-        $vendorRole->givePermissionTo('Create');
-        $vendorRole->givePermissionTo('Edit');
-        $vendorRole->givePermissionTo('Delete');
-
         $vendorUser = User::factory()->create([
             'name' => 'Vendor',
             'email' => 'demovendor@demo.com',
@@ -52,17 +50,12 @@ class PermissionSeeder extends Seeder
         ]);
         $vendorUser->assignRole($vendorRole);
 
-        $customerRole = Role::create(['name' => 'Customer']);
-        $customerRole->givePermissionTo('View');
-        $customerRole->givePermissionTo('Create');
-        $customerRole->givePermissionTo('Edit');
-        $customerRole->givePermissionTo('Delete');
-
         $customerUser = User::factory()->create([
             'name' => 'Customer',
             'email' => 'democustomer@demo.com',
             'password' => Hash::make('12345678'),
         ]);
         $customerUser->assignRole($customerRole);
+
     }
 }

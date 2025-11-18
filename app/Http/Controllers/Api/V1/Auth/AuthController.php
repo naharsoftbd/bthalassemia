@@ -3,29 +3,60 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use App\Services\ApiResponseService;
+use App\Services\Auth\AuthService;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\Request;
+use App\Http\Requests\Api\V1\Auth\RegisterRequest;
+use App\Http\Requests\Api\V1\Auth\AuthRequest;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:80',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8'
-        ]);
+    protected $authService;
 
-        $user = User::create([
-            'name'     => $validated['name'],
-            'email'    => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
+
+    public function register(RegisterRequest $request)
+    {
+        $user = $this->authService->register($request->validated());
+
+        event(new Registered($user));
 
         return ApiResponseService::success($user, 'User created successfully');
+    }
+
+    public function login(AuthRequest $request)
+    {
+        if (! $token = $this->authService->login($request->validated())) {
+            return response()->json(['error' => 'Invalid credentials'], 401);
+        }
+
+        $userData = $this->authService->respondWithToken($token);
+
+        return ApiResponseService::success($userData);
+    }
+
+    public function me()
+    {
+        $userData = $this->authService->me();
+
+        return ApiResponseService::success($userData);
+    }
+
+    public function refresh()
+    {
+        $userData = $this->authService->refresh();
+
+        return ApiResponseService::success($userData);
+    }
+
+    public function logout()
+    {
+        $this->authService->logout();
+
+        return ApiResponseService::success([], 'Successfully logged out!');
     }
 }
