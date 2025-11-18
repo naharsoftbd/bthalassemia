@@ -3,39 +3,29 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
-use App\Models\ProductVariant;
+use App\Models\Vendor;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        $product = Product::create([
-            'name' => 'Acme T-Shirt',
-            'slug' => 'acme-t-shirt',
-            'description' => 'Comfortable cotton tee',
-            'base_price' => 19.99,
-            'is_active' => true,
-        ]);
+        // Admin products
+        Product::factory()
+            ->count(15)
+            ->withoutVendor()
+            ->published()
+            ->create();
 
-        ProductVariant::create([
-            'product_id' => $product->id,
-            'sku' => 'TSHIRT-S-BLACK',
-            'name' => 'Small / Black',
-            'attributes' => ['size' => 'S', 'color' => 'black'],
-            'price' => 19.99,
-            'stock' => 20,
-            'low_stock_threshold' => 5,
-        ]);
-
-        ProductVariant::create([
-            'product_id' => $product->id,
-            'sku' => 'TSHIRT-M-BLUE',
-            'name' => 'Medium / Blue',
-            'attributes' => ['size' => 'M', 'color' => 'blue'],
-            'price' => 19.99,
-            'stock' => 3,
-            'low_stock_threshold' => 5,
-        ]);
+        // Vendor products
+        $vendors = Vendor::all();
+        
+        foreach ($vendors as $vendor) {
+            Product::factory()
+                ->count(rand(5, 12))
+                ->withVendor($vendor->id)
+                ->published()
+                ->create();
+        }
     }
 }

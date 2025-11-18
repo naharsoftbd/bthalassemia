@@ -16,46 +16,77 @@ class PermissionSeeder extends Seeder
         // Clear cache first
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 1️⃣ create permissions
-        $permissions = ['View', 'Create', 'Edit', 'Delete', 'product.create', 'product.update', 'product.delete'];
+       // Create permissions
+        $permissions = [
+            // Product permissions
+            'view products',
+            'create products',
+            'edit products',
+            'delete products',
+            'publish products',
+            'unpublish products',
+            
+            // Vendor product permissions (for vendors)
+            'view own products',
+            'create own products', 
+            'edit own products',
+            'delete own products',
+            
+            // Product approval permissions (for admins)
+            'approve products',
+            'reject products',
+            
+            // Vendor management permissions
+            'view vendors',
+            'create vendors',
+            'edit vendors', 
+            'delete vendors',
+            'approve vendors',
+            
+            // User management
+            'view users',
+            'create users',
+            'edit users',
+            'delete users',
+            
+            // Category permissions
+            'view categories',
+            'create categories',
+            'edit categories',
+            'delete categories',
+            
+            // Order permissions
+            'view orders',
+            'create orders',
+            'edit orders',
+            'delete orders',
+            'manage orders',
+        ];
 
-        $permissionModels = [];
-        foreach ($permissions as $p) {
-            $permissionModels[] = Permission::firstOrCreate(['name' => $p, 'guard_name' => 'api']);
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
         }
 
-        // 2️⃣ create roles
-        $adminRole = Role::create(['name' => 'Admin', 'guard_name' => 'api']);
-        $vendorRole = Role::create(['name' => 'Vendor', 'guard_name' => 'api']);
-        $customerRole = Role::create(['name' => 'Customer', 'guard_name' => 'api']);
+        // Create roles and assign permissions
+        $adminRole = Role::create(['name' => 'admin']);
+        $adminRole->givePermissionTo(Permission::all());
 
-        // 3️⃣ assign permissions to roles - FIXED APPROACH
-        $adminRole->givePermissionTo($permissions);
-        $vendorRole->givePermissionTo($permissions);
+        $vendorRole = Role::create(['name' => 'vendor']);
+        $vendorPermissions = [
+            'view own products',
+            'create own products',
+            'edit own products', 
+            'delete own products',
+            'view orders',
+        ];
+        $vendorRole->givePermissionTo($vendorPermissions);
 
-        // For customer role, use only the permissions that definitely exist
-        $customerRole->givePermissionTo(['View', 'Delete']);
-
-        $adminUser = User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'demoadmin@demo.com',
-            'password' => Hash::make('12345678'),
+        $customerRole = Role::create(['name' => 'customer']);
+        $customerRole->givePermissionTo([
+            'view products',
         ]);
-        $adminUser->assignRole($adminRole);
 
-        $vendorUser = User::factory()->create([
-            'name' => 'Vendor',
-            'email' => 'demovendor@demo.com',
-            'password' => Hash::make('12345678'),
-        ]);
-        $vendorUser->assignRole($vendorRole);
-
-        $customerUser = User::factory()->create([
-            'name' => 'Customer',
-            'email' => 'democustomer@demo.com',
-            'password' => Hash::make('12345678'),
-        ]);
-        $customerUser->assignRole($customerRole);
+        $this->command->info('Roles and permissions created successfully!');
 
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Products;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BaseController;
 use App\Http\Requests\Api\V1\Products\StoreProductRequest;
 use App\Http\Requests\Api\V1\Products\UpdateProductRequest;
 use App\Http\Resources\V1\Products\ProductResource;
@@ -11,13 +11,18 @@ use App\Services\Products\ProductService;
 use Illuminate\Http\Request;
 
 
-class ProductController extends Controller
+class ProductController extends BaseController
 {
     protected $productService;
 
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
+
+        $this->middleware('permission:view products|view own products')->only('index', 'show');
+        $this->middleware('permission:create products|create own products')->only('store');
+        $this->middleware('permission:edit products|edit own products')->only('update');
+        $this->middleware('permission:delete products|delete own products')->only('destroy');
     }
 
     public function index(Request $request)

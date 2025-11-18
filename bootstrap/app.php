@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\VendorApprovedMiddleware::class,
         ]);
 
         $middleware->alias([
@@ -21,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.version' => \App\Http\Middleware\ApiVersion::class,
             'jwt.refresh' => \App\Http\Middleware\JwtRefreshMiddleware::class,
             'jwt.verify'   => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
 
         //

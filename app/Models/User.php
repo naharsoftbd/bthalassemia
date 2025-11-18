@@ -71,4 +71,24 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    public function vendor()
+    {
+        return $this->hasOne(Vendor::class);
+    }
+
+    public function isAdmin()
+    {
+        return $this->hasRole('admin');
+    }
+
+    public function isVendor()
+    {
+        return $this->hasRole('vendor');
+    }
+
+    public function isVendorApproved()
+    {
+        return $this->vendor && $this->vendor->is_approved;
+    }
 }

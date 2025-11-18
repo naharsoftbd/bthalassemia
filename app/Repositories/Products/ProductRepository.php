@@ -24,6 +24,14 @@ class ProductRepository implements ProductRepositoryInterface
             $products->orWhere('description', 'like', '%'.$filters['search'].'%');
         }
 
+        if (auth()->user()->hasRole('vendor')) {
+            // Vendors can only see their own products
+            $products = $products->forVendor(auth()->user()->vendor->id);
+        } else {
+            // Admins can see all products
+            $products = Product::with('vendor');
+        }
+
         $products = $products->with('variants');
 
         return $products->latest()->paginate($perPage)->withQueryString();
