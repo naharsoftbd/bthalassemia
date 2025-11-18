@@ -84,6 +84,7 @@ class PermissionSeeder extends Seeder
         $customerRole = Role::create(['name' => 'customer']);
         $customerRole->givePermissionTo([
             'view products',
+            'view orders'
         ]);
 
         $this->command->info('Roles and permissions created successfully!');
