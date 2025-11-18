@@ -4,6 +4,7 @@ namespace App\Http\Resources\V1\Products;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\V1\Vendors\VendorResource;
 
 class ProductResource extends JsonResource
 {
@@ -22,6 +23,7 @@ class ProductResource extends JsonResource
             'base_price' => $this->base_price,
             'is_active' => (bool) $this->is_active,
             'variants' => ProductVariantResource::collection($this->whenLoaded('variants')),
+            'vendor' => new VendorResource($this->whenLoaded('vendor')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

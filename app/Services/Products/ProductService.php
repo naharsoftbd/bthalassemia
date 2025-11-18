@@ -14,9 +14,9 @@ class ProductService
         $this->products = $products;
     }
 
-    public function list($search, $perPage = 10)
+    public function list($filters)
     {
-        return $this->products->paginated($search, $perPage);
+        return $this->products->paginated($filters);
     }
 
     public function get(int $id)
