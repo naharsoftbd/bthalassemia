@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Interfaces\Auth\AuthRepositoryInterface;
 use App\Interfaces\Products\ProductRepositoryInterface;
-use App\Products\Repositories\Products\ProductRepository;
+use App\Repositories\Products\ProductRepository;
 use App\Repositories\Auth\AuthRepository;
 use Illuminate\Support\ServiceProvider;
 

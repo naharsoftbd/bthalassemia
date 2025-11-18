@@ -5,8 +5,9 @@ namespace App\Http\Middleware;
 use Closure;
 use Exception;
 use Illuminate\Http\Request;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
-use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class JwtRefreshMiddleware
@@ -19,27 +20,22 @@ class JwtRefreshMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         try {
-            // Token is valid
-            JWTAuth::parseToken()->authenticate();
-        } catch (Exception $e) {
+            $token = JWTAuth::getToken();
+            $user = JWTAuth::parseToken()->authenticate();
 
-            if ($e instanceof \PHPOpenSourceSaver\JWTAuth\Exceptions\TokenInvalidException) {
-                throw new UnauthorizedHttpException('jwt-auth', 'Invalid token');
+        } catch (TokenExpiredException $e) {
+
+            try {
+                // Refresh token
+                $newToken = JWTAuth::refresh($token);
+
+                // Send new token to client
+                return $next($request)
+                    ->header('X-Refreshed-Token', $newToken);
+
+            } catch (JWTException $e) {
+                return response()->json(['message' => 'Token expired, please login again'], 401);
             }
-
-            if ($e instanceof \PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException) {
-                try {
-                    // Attempt refresh
-                    $newToken = JWTAuth::refresh(JWTAuth::getToken());
-
-                    // Set new token in response header
-                    return $next($request)->header('Authorization', 'Bearer '.$newToken);
-                } catch (Exception $e) {
-                    throw new UnauthorizedHttpException('jwt-auth', 'Token expired & refresh failed');
-                }
-            }
-
-            throw new UnauthorizedHttpException('jwt-auth', 'Unauthorized');
         }
 
         return $next($request);

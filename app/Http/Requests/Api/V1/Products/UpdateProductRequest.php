@@ -3,6 +3,8 @@
 namespace App\Http\Requests\Api\V1\Products;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Rules\UniqueSku;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -21,12 +23,35 @@ class UpdateProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+         $rules = [
             'name' => 'required|string|max:255',
             'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($this->route('product'))],
             'description' => 'nullable|string',
             'base_price' => 'nullable|numeric|min:0',
             'is_active' => 'sometimes|boolean',
+            'variants' => 'nullable|array',
+            'variants.*.id' => 'sometimes|exists:product_variants,id',
+            'variants.*.name' => 'required|string',
+            'variants.*.price' => 'nullable|numeric',
+            'variants.*.stock' => 'nullable|integer',
+            'variants.*.low_stock_threshold' => 'nullable|integer',
+            'variants.*.attributes' => 'nullable|array',
         ];
+
+         // Add SKU rules with proper ignoring
+        if ($this->variants) {
+            
+            foreach ($this->variants as $index => $variant) {
+                $variantId = $variant['id'] ?? null;
+                $rules["variants.{$index}.sku"] = [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('product_variants', 'sku')->ignore($variantId)
+                ];
+            }
+        }
+
+        return $rules;
     }
 }

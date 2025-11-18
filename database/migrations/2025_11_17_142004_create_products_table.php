@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('base_price', 10, 2)->nullable(); // optional, variant might override
 
             $table->boolean('is_active')->default(true);
-
+            $table->softDeletes();
             $table->timestamps();
         });
     }

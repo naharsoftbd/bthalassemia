@@ -38,7 +38,11 @@ class AuthRepository implements AuthRepositoryInterface
 
     public function refresh()
     {
-        return Auth::refresh();
+        return response()->json([
+            'access_token' => Auth::refresh(),
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 60
+        ]);
     }
 
     public function logout()

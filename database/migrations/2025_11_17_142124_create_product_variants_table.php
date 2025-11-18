@@ -32,7 +32,7 @@ return new class extends Migration
             $table->json('attributes')->nullable(); // e.g. size, color, package type
 
             $table->boolean('is_active')->default(true);
-
+            $table->softDeletes();
             $table->timestamps();
         });
     }

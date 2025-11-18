@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'api.version' => \App\Http\Middleware\ApiVersion::class,
             'jwt.refresh' => \App\Http\Middleware\JwtRefreshMiddleware::class,
+            'jwt.verify'   => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
         ]);
 
         //

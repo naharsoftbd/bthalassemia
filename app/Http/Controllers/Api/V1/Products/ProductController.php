@@ -3,12 +3,13 @@
 namespace App\Http\Controllers\Api\V1\Products;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\V1\Products\StoreProductRequest;
-use App\Http\Requests\V1\Products\UpdateProductRequest;
-use App\Http\Resources\V1\ProductResource;
+use App\Http\Requests\Api\V1\Products\StoreProductRequest;
+use App\Http\Requests\Api\V1\Products\UpdateProductRequest;
+use App\Http\Resources\V1\Products\ProductResource;
 use App\Models\Product;
 use App\Services\Products\ProductService;
 use Illuminate\Http\Request;
+
 
 class ProductController extends Controller
 {
@@ -40,7 +41,7 @@ class ProductController extends Controller
         return new ProductResource($product->load('variants'));
     }
 
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, $id)
     {
         $product = $this->productService->update($id, $request->validated());
 
