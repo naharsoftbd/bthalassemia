@@ -33,6 +33,20 @@ class UserSeeder extends Seeder
                 'is_approved' => true
             ]);
 
+        $vendorUser1 =  User::factory()->create([
+            'name' => 'Vendor1 User',
+            'email' => 'vendor1@demo.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        $vendorUser1->assignRole('Vendor');
+
+        Vendor::factory()->create([
+                'user_id' => $vendorUser1->id,
+                'business_name' => "Vendor1 Business ",
+                'is_approved' => true
+            ]);
+
         $customerUser =  User::factory()->create([
             'name' => 'Customer User',
             'email' => 'customer@demo.com',

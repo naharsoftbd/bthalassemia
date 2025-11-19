@@ -7,6 +7,14 @@ use App\Models\Product;
 
 class ProductRepository implements ProductRepositoryInterface
 {
+    protected $vendor_id;
+    public function __construct()
+    {
+        if (auth()?->user()?->hasRole('vendor')) {
+            $this->vendor_id = auth()->user()->vendor->id;
+        }
+    }
+
     public function all()
     {
         return Product::with('variants')->get();
@@ -62,9 +70,9 @@ class ProductRepository implements ProductRepositoryInterface
             $products->where('is_active', (bool)$filters['is_active']);
         }
 
-        if (auth()->user()->hasRole('vendor')) {
+        if ($this->vendor_id) {
             // Vendors can only see their own products
-            $products = $products->forVendor(auth()->user()->vendor->id);
+            $products = $products->forVendor($this->vendor_id);
         } else {
             // Admins can see all products
             $products =  $products->with('vendor');
@@ -83,6 +91,11 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function create(array $data)
     {
+        if($this->vendor_id){
+            $data += ['vendor_id' => $this->vendor_id];
+        }
+        
+
         $product = Product::create($data);
 
         if (isset($data['variants'])) {

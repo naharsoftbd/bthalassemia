@@ -19,7 +19,7 @@ return new class extends Migration
             
             // Order details
             $table->string('order_number')->unique();
-            $table->enum('status', ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'])->default('pending');
+            $table->enum('status', ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded'])->default('Pending');
             
             // Pricing
             $table->decimal('subtotal', 10, 2)->default(0);

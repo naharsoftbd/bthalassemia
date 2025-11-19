@@ -21,7 +21,7 @@ class ProductVariantObserver
     public function updated(ProductVariant $productVariant): void
     {
         // Dispatch a queued job to evaluate low stock and send notifications if needed.
-        CheckLowStockJob::dispatch($variant);
+        CheckLowStockJob::dispatch($productVariant);
     }
 
     /**
