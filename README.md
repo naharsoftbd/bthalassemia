@@ -95,7 +95,7 @@ FullText - Search
 
 
 Infrastructure
-Docker - Containerization
+
 
 Nginx - Web Server
 
