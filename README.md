@@ -217,21 +217,35 @@ GET    api/v1/auth/register
 POST    api/v1/auth/login
 
 Authenticated API
+
 http
+
 GET    /api/v1/products           # List products
+
 GET    /api/v1/products/{id}      # Product details
+
 POST   /api/v1/products      # Create Product
+
 PUT    /api/v1/products/{id}      # Update Product
+
 DELETE   /api/v1/products/{id}      # Delete Product
+
 GET    /api/v1//products/import/template      # Download CSV products template
+
 POST   /api/v1//products/import     # Upload Bulk CSV products
 
 POST   /api/v1/orders         # Generate Order
+
 GET    /api/v1/orders        # User orders
+
 POST   /api/v1//orders/{id}/confirm         # Confirm Order
+
 POST   /api/v1//orders/{id}/cancel         # Cancel Order
+
 POST   /api/v1//orders/{id}/cancel-vendor-items         # Cancel vendor items
+
 GET   /api/v1//orders/{id}/invoice/download         # Download invoice 
+
 GET   /api/v1//orders/{id}/invoice/vendor         # Download vendor invoice 
 
 
