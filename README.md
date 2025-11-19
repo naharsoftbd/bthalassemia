@@ -1,6 +1,6 @@
 # Laravel E-Commerce Order Management System API
 
-![Laravel E-Commerce](https://img.shields.io/badge/Laravel-10.x-FF2D20?style=for-the-badge&logo=laravel)
+![Laravel E-Commerce](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)
 
 A modern, full-featured multi vendor e-commerce platform built with Laravel, designed for scalability, performance, and exceptional user experience.
 
@@ -21,29 +21,31 @@ A modern, full-featured multi vendor e-commerce platform built with Laravel, des
 
 ### Install PHP dependencies
 
-bash
 composer install
 
 ### Setup environment
 
-bash
 cp .env.example .env
 php artisan key:generate
 
 ### Configure database
 
-bash
+
 # Edit .env file with your database credentials
-DB_DATABASE=laravel_ecommerce
+DB_DATABASE=bthalassemia
+
 DB_USERNAME=your_username
+
 DB_PASSWORD=your_password
+
 Run migrations and seeders
 
-bash
+
 php artisan migrate:fresh --seed
 
-bash
+
 php artisan serve
+
 Visit http://localhost:8000 to see your store!
 
 # Default Admin Login:
@@ -72,7 +74,11 @@ Advanced inventory management
 🏪 Store Management
 Comprehensive admin dashboard
 
-Vendor portal
+# Default Vendor Login
+
+Email: vendor@demo.com
+
+Password: password
 
 Multi-store support
 
