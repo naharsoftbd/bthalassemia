@@ -207,9 +207,13 @@ Rate limiting
 Data encryption
 
 🌐 API Endpoints
+
 Public API
+
 http
+
 GET    api/v1/auth/register
+
 POST    api/v1/auth/login
 
 Authenticated API
