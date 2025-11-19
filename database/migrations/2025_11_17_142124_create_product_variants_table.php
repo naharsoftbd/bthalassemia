@@ -47,7 +47,7 @@ return new class extends Migration
             $table->index('is_active');
             $table->index(['product_id', 'is_active']);
             $table->index(['sku', 'is_active']);
-            
+
             // Full-text search
             $table->fullText(['sku', 'name']);
         });

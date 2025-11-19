@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
 
         $adminUser->assignRole('Admin');
 
-       $vendorUser =  User::factory()->create([
+        $vendorUser = User::factory()->create([
             'name' => 'Vendor User',
             'email' => 'vendor@demo.com',
             'password' => Hash::make('password'),
@@ -28,12 +28,12 @@ class UserSeeder extends Seeder
         $vendorUser->assignRole('Vendor');
 
         Vendor::factory()->create([
-                'user_id' => $vendorUser->id,
-                'business_name' => "Vendor Business ",
-                'is_approved' => true
-            ]);
+            'user_id' => $vendorUser->id,
+            'business_name' => 'Vendor Business ',
+            'is_approved' => true,
+        ]);
 
-        $vendorUser1 =  User::factory()->create([
+        $vendorUser1 = User::factory()->create([
             'name' => 'Vendor1 User',
             'email' => 'vendor1@demo.com',
             'password' => Hash::make('password'),
@@ -42,17 +42,25 @@ class UserSeeder extends Seeder
         $vendorUser1->assignRole('Vendor');
 
         Vendor::factory()->create([
-                'user_id' => $vendorUser1->id,
-                'business_name' => "Vendor1 Business ",
-                'is_approved' => true
-            ]);
+            'user_id' => $vendorUser1->id,
+            'business_name' => 'Vendor1 Business ',
+            'is_approved' => true,
+        ]);
 
-        $customerUser =  User::factory()->create([
+        $customerUser = User::factory()->create([
             'name' => 'Customer User',
             'email' => 'customer@demo.com',
             'password' => Hash::make('password'),
         ]);
 
         $customerUser->assignRole('Customer');
+
+        $customer1User = User::factory()->create([
+            'name' => 'Customer1 User',
+            'email' => 'customer1@demo.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        $customer1User->assignRole('Customer');
     }
 }

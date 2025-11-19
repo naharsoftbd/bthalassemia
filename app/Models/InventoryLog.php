@@ -11,7 +11,7 @@ class InventoryLog extends Model
 
     protected $fillable = [
         'product_id', 'product_variant_id', 'order_id', 'quantity',
-        'action', 'reason', 'notes', 'previous_stock', 'new_stock'
+        'action', 'reason', 'notes', 'previous_stock', 'new_stock',
     ];
 
     protected $casts = [

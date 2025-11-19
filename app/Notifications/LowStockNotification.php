@@ -4,62 +4,51 @@ namespace App\Notifications;
 
 use App\Models\ProductVariant;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class LowStockNotification extends Notification
+class LowStockNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $variant;
+    public $productVariant;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(ProductVariant $variant)
+    public function __construct(ProductVariant $productVariant)
     {
-        $this->variant = $variant;
+        $this->productVariant = $productVariant;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    public function via($notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
-        $product = $this->variant->product;
-
         return (new MailMessage)
-            ->subject("Low stock alert: {$product->name} — {$this->variant->sku}")
-            ->line("Variant: {$this->variant->name} ({$this->variant->sku})")
-            ->line("Current stock: {$this->variant->stock}")
-            ->line("Low stock threshold: {$this->variant->low_stock_threshold}")
-            ->action('View product', url("/products/{$product->id}/variants/{$this->variant->id}"))
-            ->line('Please replenish stock as soon as possible.');
+            ->subject('Low Stock Alert - '.$this->productVariant->product->name)
+            ->greeting('Low Stock Alert!')
+            ->line('Your product is running low on stock:')
+            ->line('**Product:** '.$this->productVariant->product->name)
+            ->line('**Variant:** '.$this->productVariant->name)
+            ->line('**SKU:** '.$this->productVariant->sku)
+            ->line('**Current Stock:** '.$this->productVariant->stock)
+            ->line('**Low Stock Threshold:** '.$this->productVariant->low_stock_threshold)
+            ->action('Manage Inventory', url('/vendor/products/'.$this->productVariant->product_id))
+            ->line('Please restock soon to avoid missing sales.');
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    public function toArray($notifiable): array
     {
         return [
-            'product_id' => $this->variant->product_id,
-            'variant_id' => $this->variant->id,
-            'sku' => $this->variant->sku,
-            'stock' => $this->variant->stock,
-            'threshold' => $this->variant->low_stock_threshold,
+            'product_variant_id' => $this->productVariant->id,
+            'product_name' => $this->productVariant->product->name,
+            'variant_name' => $this->productVariant->name,
+            'current_stock' => $this->productVariant->stock,
+            'threshold' => $this->productVariant->low_stock_threshold,
+            'message' => 'Low stock alert for '.$this->productVariant->product->name,
+            'type' => 'low_stock_alert',
         ];
     }
 }

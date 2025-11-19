@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Api\V1\Products;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Rules\UniqueSku;
+use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductRequest extends FormRequest
 {
@@ -29,7 +29,7 @@ class StoreProductRequest extends FormRequest
             'base_price' => 'nullable|numeric|min:0',
             'is_active' => 'sometimes|boolean',
             'variants' => 'nullable|array',
-            'variants.*.sku' => ['required', 'string', 'max:255', new UniqueSku()],
+            'variants.*.sku' => ['required', 'string', 'max:255', new UniqueSku],
             'variants.*.name' => 'required|string',
             'variants.*.price' => 'nullable|numeric',
             'variants.*.stock' => 'nullable|integer',

@@ -10,7 +10,7 @@ class ProductVariantFactory extends Factory
     public function definition(): array
     {
         $basePrice = $this->faker->randomFloat(2, 5, 500);
-        
+
         return [
             'product_id' => Product::factory(),
             'sku' => strtoupper($this->faker->bothify('SKU-####-???')),

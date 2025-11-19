@@ -13,7 +13,7 @@ class Product extends Model
     protected $fillable = [
         'vendor_id', 'name', 'slug', 'description', 'short_description',
         'base_price', 'is_active', 'status', 'is_approved',
-        'tags', 'meta_title', 'meta_description'
+        'tags', 'meta_title', 'meta_description',
     ];
 
     protected $casts = [
@@ -35,14 +35,14 @@ class Product extends Model
 
     public function scopeSearch($query, $search)
     {
-        return $query->where(function($q) use ($search) {
+        return $query->where(function ($q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
-              ->orWhere('description', 'like', "%{$search}%")
-              ->orWhere('short_description', 'like', "%{$search}%")
-              ->orWhereHas('variants', function($q) use ($search) {
-                  $q->where('sku', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%");
-              });
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhere('short_description', 'like', "%{$search}%")
+                ->orWhereHas('variants', function ($q) use ($search) {
+                    $q->where('sku', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
+                });
         });
     }
 

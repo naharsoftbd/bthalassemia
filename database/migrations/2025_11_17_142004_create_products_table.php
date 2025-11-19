@@ -31,7 +31,7 @@ return new class extends Migration
             $table->enum('status', ['draft', 'published', 'pending_review'])->default('draft');
             $table->boolean('is_approved')->default(false); // For vendor products
 
-             // Searchable metadata
+            // Searchable metadata
             $table->json('tags')->nullable();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
@@ -48,7 +48,7 @@ return new class extends Migration
             $table->index('vendor_id');
             $table->index(['is_active', 'status']);
             $table->index(['vendor_id', 'is_active']);
-            
+
             // Full-text indexes for search
             $table->fullText(['name', 'description', 'short_description']);
         });

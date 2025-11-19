@@ -13,7 +13,7 @@ class OrderItem extends Model
         'order_id', 'product_id', 'product_variant_id', 'vendor_id',
         'product_name', 'variant_name', 'sku', 'attributes',
         'unit_price', 'discount_amount', 'tax_amount', 'total_price',
-        'quantity', 'fulfillment_status', 'fulfilled_at'
+        'quantity', 'fulfillment_status', 'fulfilled_at',
     ];
 
     protected $casts = [

@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Interfaces\Orders;
 
@@ -28,11 +28,15 @@ interface OrderRepositoryInterface
      */
     public function updateOrderStatus(User $user, $orderId, string $status, ?string $notes = null): bool;
 
-
     /**
      * Confirm an order
      */
     public function confirmOrder(User $user, $orderId, ?string $notes = null): array;
+
+    /**
+     * Cancel an order Vendor Items
+     */
+    public function cancelVendorOrderItems(User $user, $orderId, ?string $reason = null): array;
 
     /**
      * Cancel an order

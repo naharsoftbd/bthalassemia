@@ -164,7 +164,7 @@ class UpdateOrderRequest extends FormRequest
             $order = $this->route('order');
 
             // Validate that order can be updated
-            if (!$this->validateOrderCanBeUpdated($order)) {
+            if (! $this->validateOrderCanBeUpdated($order)) {
                 $validator->errors()->add('order', 'This order cannot be updated in its current state.');
             }
 
@@ -198,8 +198,8 @@ class UpdateOrderRequest extends FormRequest
     {
         // Customers can only cancel their own pending orders
         if (auth()->user()->hasRole('customer')) {
-            return $newStatus === 'cancelled' && 
-                   $order->status === 'pending' && 
+            return $newStatus === 'cancelled' &&
+                   $order->status === 'pending' &&
                    $order->user_id === auth()->id();
         }
 
@@ -221,14 +221,15 @@ class UpdateOrderRequest extends FormRequest
         // Customers can only update their own orders and only specific fields
         if ($user->hasRole('customer') && $order->user_id !== $user->id) {
             $validator->errors()->add('order', 'You can only update your own orders.');
+
             return;
         }
 
         if ($user->hasRole('customer')) {
             $allowedFields = ['customer_phone', 'shipping_address', 'billing_address'];
             $disallowedFields = array_diff(array_keys($this->all()), $allowedFields);
-            
-            if (!empty($disallowedFields)) {
+
+            if (! empty($disallowedFields)) {
                 foreach ($disallowedFields as $field) {
                     $validator->errors()->add($field, 'You are not authorized to update this field.');
                 }

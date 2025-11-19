@@ -11,7 +11,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Auth;
 
 class CheckLowStockJob implements ShouldQueue
 {
@@ -27,7 +26,6 @@ class CheckLowStockJob implements ShouldQueue
     public function __construct(ProductVariant $variant)
     {
         $this->variant = $variant;
-        $this->user = Auth::user();
     }
 
     public function middleware(): array
@@ -46,10 +44,10 @@ class CheckLowStockJob implements ShouldQueue
         if ($this->variant->stock <= $this->variant->low_stock_threshold && ! $this->variant->low_stock_notified) {
             // Send notification to admins — customize recipients as you like.
             // Example: notify all users with 'manage inventory' permission. For simplicity, notify first admin user.
-            $admins = User::role('Admin')->get();
+            $vendors = User::role('Vendor')->get();
 
-            foreach ($admins as $admin) {
-                $admin->notify(new LowStockNotification($this->variant));
+            foreach ($vendors as $vendor) {
+                $vendor->notify(new LowStockNotification($this->variant));
             }
 
             $this->variant->updateQuietly(['low_stock_notified' => true]);

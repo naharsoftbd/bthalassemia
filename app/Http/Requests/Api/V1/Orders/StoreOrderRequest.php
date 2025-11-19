@@ -29,7 +29,7 @@ class StoreOrderRequest extends FormRequest
             'shipping_cost' => 'sometimes|numeric|min:0',
             'discount_amount' => 'sometimes|numeric|min:0',
             'total' => 'required|numeric|min:0.01',
-            
+
             // Customer information
             'customer_phone' => 'sometimes|string|max:20',
             'shipping_address' => 'required|array',
@@ -38,18 +38,18 @@ class StoreOrderRequest extends FormRequest
             'shipping_address.state' => 'required|string|max:255',
             'shipping_address.country' => 'required|string|max:255',
             'shipping_address.zip_code' => 'required|string|max:20',
-            
+
             'billing_address' => 'sometimes|array',
             'billing_address.street' => 'required_with:billing_address|string|max:255',
             'billing_address.city' => 'required_with:billing_address|string|max:255',
             'billing_address.state' => 'required_with:billing_address|string|max:255',
             'billing_address.country' => 'required_with:billing_address|string|max:255',
             'billing_address.zip_code' => 'required_with:billing_address|string|max:20',
-            
+
             // Payment information
             'payment_method' => 'sometimes|string|max:50',
             'customer_notes' => 'sometimes|string|max:1000',
-            
+
             // Order items
             'items' => 'required|array|min:1',
             'items.*.product_id' => [
@@ -186,7 +186,7 @@ class StoreOrderRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             // Validate that total matches calculated total
-            if (!$this->validateOrderTotal()) {
+            if (! $this->validateOrderTotal()) {
                 $validator->errors()->add('total', 'The total amount does not match the calculated order total.');
             }
 
@@ -200,9 +200,9 @@ class StoreOrderRequest extends FormRequest
      */
     protected function validateOrderTotal(): bool
     {
-        $calculatedTotal = $this->subtotal 
-            + ($this->tax_amount ?? 0) 
-            + ($this->shipping_cost ?? 0) 
+        $calculatedTotal = $this->subtotal
+            + ($this->tax_amount ?? 0)
+            + ($this->shipping_cost ?? 0)
             - ($this->discount_amount ?? 0);
 
         return abs($calculatedTotal - $this->total) < 0.01; // Allow small floating point differences

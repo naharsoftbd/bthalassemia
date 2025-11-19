@@ -14,7 +14,7 @@ class Order extends Model
         'shipping_cost', 'discount_amount', 'total', 'customer_email',
         'customer_phone', 'shipping_address', 'billing_address',
         'payment_status', 'payment_method', 'transaction_id',
-        'shipping_method', 'tracking_number'
+        'shipping_method', 'tracking_number',
     ];
 
     protected $casts = [
@@ -28,8 +28,8 @@ class Order extends Model
         'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
         'cancelled_at' => 'datetime',
-        'shipping_address' => 'array', 
-        'billing_address' => 'array', 
+        'shipping_address' => 'array',
+        'billing_address' => 'array',
     ];
 
     // Relationships
@@ -51,7 +51,7 @@ class Order extends Model
     // Scopes
     public function scopeForVendor($query, $vendorId)
     {
-        return $query->whereHas('items', function($q) use ($vendorId) {
+        return $query->whereHas('items', function ($q) use ($vendorId) {
             $q->where('vendor_id', $vendorId);
         });
     }

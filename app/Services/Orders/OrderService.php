@@ -6,7 +6,6 @@ use App\Interfaces\Orders\OrderRepositoryInterface;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
@@ -50,13 +49,13 @@ class OrderService
     public function updateOrder(User $user, $orderId, array $data): Order
     {
         $order = $this->orderRepository->getOrderForUser($user, $orderId);
-        
-        if (!$order) {
+
+        if (! $order) {
             throw new \Exception('Order not found or unauthorized.');
         }
 
         $order->update($data);
-        
+
         return $order->fresh();
     }
 
@@ -69,11 +68,19 @@ class OrderService
     }
 
     /**
-     * Cancel an order
+     * Confirm an order
      */
     public function confirmOrder(User $user, $orderId, ?string $reason = null): array
     {
         return $this->orderRepository->confirmOrder($user, $orderId, $reason);
+    }
+
+    /**
+     * Cancel an order
+     */
+    public function cancelVendorOrderItems(User $user, $orderId, ?string $reason = null): array
+    {
+        return $this->orderRepository->cancelVendorOrderItems($user, $orderId, $reason);
     }
 
     /**
@@ -84,13 +91,12 @@ class OrderService
         return $this->orderRepository->cancelOrder($user, $orderId, $reason);
     }
 
-
     /**
      * Get vendor's order items
      */
     public function getVendorOrderItems(User $user, array $filters = []): LengthAwarePaginator
     {
-        if (!$user->hasRole('vendor')) {
+        if (! $user->hasRole('vendor')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -104,17 +110,17 @@ class OrderService
     {
         $order = $this->orderRepository->getOrderForUser($user, $orderId);
 
-        if (!$order) {
+        if (! $order) {
             return [
                 'success' => false,
-                'message' => 'Order not found.'
+                'message' => 'Order not found.',
             ];
         }
 
         if ($order->payment_status === 'paid') {
             return [
                 'success' => false,
-                'message' => 'Order is already paid.'
+                'message' => 'Order is already paid.',
             ];
         }
 
@@ -139,13 +145,13 @@ class OrderService
             return [
                 'success' => true,
                 'message' => 'Payment processed successfully.',
-                'order' => $order->fresh()
+                'order' => $order->fresh(),
             ];
         }
 
         return [
             'success' => false,
-            'message' => 'Payment processing failed.'
+            'message' => 'Payment processing failed.',
         ];
     }
 
@@ -156,8 +162,8 @@ class OrderService
     {
         foreach ($items as $item) {
             $productVariant = \App\Models\ProductVariant::find($item['product_variant_id']);
-            
-            if (!$productVariant || $productVariant->stock < $item['quantity']) {
+
+            if (! $productVariant || $productVariant->stock < $item['quantity']) {
                 throw new \Exception("Insufficient stock for product: {$item['product_name']}");
             }
         }
@@ -171,7 +177,7 @@ class OrderService
         foreach ($order->items as $item) {
             if ($item->product_variant_id) {
                 $variant = \App\Models\ProductVariant::find($item->product_variant_id);
-                
+
                 if ($variant) {
                     if ($action === 'decrement') {
                         $variant->decrement('stock', $item->quantity);
@@ -183,7 +189,6 @@ class OrderService
         }
     }
 
-
     /**
      * Process payment with payment gateway (placeholder)
      */
@@ -194,15 +199,14 @@ class OrderService
         return true; // Simulate successful payment
     }
 
-
     /**
      * Delete order
      */
     public function deleteOrder(User $user, $orderId): bool
     {
         $order = $this->orderRepository->getOrderForUser($user, $orderId);
-        
-        if (!$order) {
+
+        if (! $order) {
             throw new \Exception('Order not found or unauthorized.');
         }
 

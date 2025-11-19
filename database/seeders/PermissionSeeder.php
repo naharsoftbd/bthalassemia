@@ -2,12 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 class PermissionSeeder extends Seeder
 {
@@ -16,7 +15,7 @@ class PermissionSeeder extends Seeder
         // Clear cache first
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-       // Create permissions
+        // Create permissions
         $permissions = [
             // Product permissions
             'view products',
@@ -25,36 +24,36 @@ class PermissionSeeder extends Seeder
             'delete products',
             'publish products',
             'unpublish products',
-            
+
             // Vendor product permissions (for vendors)
             'view own products',
-            'create own products', 
+            'create own products',
             'edit own products',
             'delete own products',
-            
+
             // Product approval permissions (for admins)
             'approve products',
             'reject products',
-            
+
             // Vendor management permissions
             'view vendors',
             'create vendors',
-            'edit vendors', 
+            'edit vendors',
             'delete vendors',
             'approve vendors',
-            
+
             // User management
             'view users',
             'create users',
             'edit users',
             'delete users',
-            
+
             // Category permissions
             'view categories',
             'create categories',
             'edit categories',
             'delete categories',
-            
+
             // Order permissions
             'view orders',
             'create orders',
@@ -75,7 +74,7 @@ class PermissionSeeder extends Seeder
         $vendorPermissions = [
             'view own products',
             'create own products',
-            'edit own products', 
+            'edit own products',
             'delete own products',
             'view orders',
         ];
@@ -84,7 +83,7 @@ class PermissionSeeder extends Seeder
         $customerRole = Role::create(['name' => 'customer']);
         $customerRole->givePermissionTo([
             'view products',
-            'view orders'
+            'view orders',
         ]);
 
         $this->command->info('Roles and permissions created successfully!');

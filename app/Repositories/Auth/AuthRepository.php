@@ -41,7 +41,7 @@ class AuthRepository implements AuthRepositoryInterface
         return response()->json([
             'access_token' => Auth::refresh(),
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'expires_in' => auth()->factory()->getTTL() * 60,
         ]);
     }
 

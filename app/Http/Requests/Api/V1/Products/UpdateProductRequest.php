@@ -4,7 +4,6 @@ namespace App\Http\Requests\Api\V1\Products;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Rules\UniqueSku;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -23,7 +22,7 @@ class UpdateProductRequest extends FormRequest
      */
     public function rules(): array
     {
-         $rules = [
+        $rules = [
             'name' => 'required|string|max:255',
             'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($this->route('product'))],
             'description' => 'nullable|string',
@@ -38,16 +37,16 @@ class UpdateProductRequest extends FormRequest
             'variants.*.attributes' => 'nullable|array',
         ];
 
-         // Add SKU rules with proper ignoring
+        // Add SKU rules with proper ignoring
         if ($this->variants) {
-            
+
             foreach ($this->variants as $index => $variant) {
                 $variantId = $variant['id'] ?? null;
                 $rules["variants.{$index}.sku"] = [
                     'required',
                     'string',
                     'max:255',
-                    Rule::unique('product_variants', 'sku')->ignore($variantId)
+                    Rule::unique('product_variants', 'sku')->ignore($variantId),
                 ];
             }
         }

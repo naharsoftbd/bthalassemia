@@ -2,15 +2,14 @@
 
 namespace App\Rules;
 
+use App\Models\ProductVariant;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use App\Models\ProductVariant;
 
 class UniqueSku implements ValidationRule
 {
     // To track SKUs within the same request
     private static array $seen = [];
-
 
     /**
      * Run the validation rule.
@@ -22,6 +21,7 @@ class UniqueSku implements ValidationRule
         // 1️⃣ Check duplicate in request itself
         if (in_array($value, self::$seen)) {
             $fail("The SKU '{$value}' is duplicated in the request.");
+
             return;
         }
         self::$seen[] = $value;

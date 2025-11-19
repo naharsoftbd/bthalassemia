@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'api.version' => \App\Http\Middleware\ApiVersion::class,
             'jwt.refresh' => \App\Http\Middleware\JwtRefreshMiddleware::class,
-            'jwt.verify'   => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
+            'jwt.verify' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

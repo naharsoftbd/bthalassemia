@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Auth\AuthRequest;
+use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Services\ApiResponseService;
 use App\Services\Auth\AuthService;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\Request;
-use App\Http\Requests\Api\V1\Auth\RegisterRequest;
-use App\Http\Requests\Api\V1\Auth\AuthRequest;
 
 class AuthController extends Controller
 {

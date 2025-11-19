@@ -10,7 +10,6 @@ use App\Models\Product;
 use App\Services\Products\ProductService;
 use Illuminate\Http\Request;
 
-
 class ProductController extends BaseController
 {
     protected $productService;

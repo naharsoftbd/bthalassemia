@@ -8,6 +8,7 @@ use App\Models\Product;
 class ProductRepository implements ProductRepositoryInterface
 {
     protected $vendor_id;
+
     public function __construct()
     {
         if (auth()?->user()?->hasRole('vendor')) {
@@ -26,14 +27,14 @@ class ProductRepository implements ProductRepositoryInterface
 
         $products = Product::query();
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $searchTerm = $filters['search'];
-            
+
             $products->where(function ($query) use ($searchTerm) {
                 // Full-text search on product fields
                 if (config('database.default') === 'mysql') {
                     $query->whereRaw(
-                        "MATCH(products.name, products.description, products.short_description) AGAINST(? IN BOOLEAN MODE)",
+                        'MATCH(products.name, products.description, products.short_description) AGAINST(? IN BOOLEAN MODE)',
                         [$this->prepareSearchTerm($searchTerm)]
                     );
                 } else {
@@ -44,7 +45,7 @@ class ProductRepository implements ProductRepositoryInterface
                 $query->orWhereHas('variants', function ($variantQuery) use ($searchTerm) {
                     if (config('database.default') === 'mysql') {
                         $variantQuery->whereRaw(
-                            "MATCH(sku, name) AGAINST(? IN BOOLEAN MODE)",
+                            'MATCH(sku, name) AGAINST(? IN BOOLEAN MODE)',
                             [$this->prepareSearchTerm($searchTerm)]
                         );
                     } else {
@@ -58,16 +59,16 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         // Other filters
-        if (!empty($filters['category_id'])) {
+        if (! empty($filters['category_id'])) {
             $products->where('category_id', $filters['category_id']);
         }
 
-        if (!empty($filters['vendor_id'])) {
+        if (! empty($filters['vendor_id'])) {
             $products->where('vendor_id', $filters['vendor_id']);
         }
 
         if (isset($filters['is_active'])) {
-            $products->where('is_active', (bool)$filters['is_active']);
+            $products->where('is_active', (bool) $filters['is_active']);
         }
 
         if ($this->vendor_id) {
@@ -75,7 +76,7 @@ class ProductRepository implements ProductRepositoryInterface
             $products = $products->forVendor($this->vendor_id);
         } else {
             // Admins can see all products
-            $products =  $products->with('vendor');
+            $products = $products->with('vendor');
         }
 
         $products = $products->with(['variants', 'vendor', 'vendor.user']);
@@ -91,10 +92,9 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function create(array $data)
     {
-        if($this->vendor_id){
+        if ($this->vendor_id) {
             $data += ['vendor_id' => $this->vendor_id];
         }
-        
 
         $product = Product::create($data);
 
@@ -159,17 +159,17 @@ class ProductRepository implements ProductRepositoryInterface
     {
         // Remove special characters and prepare for boolean mode
         $cleaned = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $searchTerm);
-        
+
         // For MySQL boolean mode, add + before each word
         if (config('database.default') === 'mysql') {
             $words = array_filter(explode(' ', $cleaned));
-            $words = array_map(function($word) {
-                return '+' . $word . '*';
+            $words = array_map(function ($word) {
+                return '+'.$word.'*';
             }, $words);
-            
+
             return implode(' ', $words);
         }
-        
+
         return $cleaned;
     }
 }

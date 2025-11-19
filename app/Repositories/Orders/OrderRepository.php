@@ -6,11 +6,20 @@ use App\Interfaces\Orders\OrderRepositoryInterface;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class OrderRepository implements OrderRepositoryInterface
 {
+    protected $notificationService;
+
+    public function __construct(
+        NotificationService $notificationService
+    ) {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Get orders based on user role
      */
@@ -24,9 +33,9 @@ class OrderRepository implements OrderRepositoryInterface
                 }
                 $query->with(['vendor', 'product']);
             },
-            'user'
+            'user',
         ]);
-       
+
         // Role-based filtering
         if ($user->hasRole('vendor')) {
             $query->whereHas('items', function ($q) use ($user) {
@@ -49,19 +58,19 @@ class OrderRepository implements OrderRepositoryInterface
     public function getOrderForUser(User $user, $orderId): ?Order
     {
         $order = Order::with([
-            'items.vendor', 
-            'items.product', 
+            'items.vendor',
+            'items.product',
             'items.variant',
-            'user'
+            'user',
         ])->find($orderId);
 
-        if (!$order) {
+        if (! $order) {
             return null;
         }
 
         // Authorization checks
         if ($user->hasRole('vendor')) {
-            if (!$order->items->where('vendor_id', $user->vendor->id)->count()) {
+            if (! $order->items->where('vendor_id', $user->vendor->id)->count()) {
                 return null;
             }
         } elseif ($user->hasRole('customer')) {
@@ -80,8 +89,8 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return DB::transaction(function () use ($user, $data) {
             // Generate order number
-            $orderNumber = 'ORD-' . date('Ymd') . '-' . strtoupper(uniqid());
-            
+            $orderNumber = 'ORD-'.date('Ymd').'-'.strtoupper(uniqid());
+
             $order = Order::create([
                 'user_id' => $user->id,
                 'order_number' => $orderNumber,
@@ -115,6 +124,8 @@ class OrderRepository implements OrderRepositoryInterface
                     'total_price' => $item['unit_price'] * $item['quantity'],
                 ]);
             }
+            // Send notifications
+            $this->notificationService->sendOrderCreatedNotifications($order);
 
             return $order->load('items');
         });
@@ -126,15 +137,15 @@ class OrderRepository implements OrderRepositoryInterface
     public function updateOrderStatus(User $user, $orderId, string $status, ?string $notes = null): bool
     {
         $order = $this->getOrderForUser($user, $orderId);
-        
-        if (!$order) {
+
+        if (! $order) {
             return false;
         }
 
         $updateData = ['status' => $status];
-        
+
         // Set timestamp based on status
-        $timestampField = $status . '_at';
+        $timestampField = $status.'_at';
         if (in_array($timestampField, ['processing_at', 'shipped_at', 'delivered_at', 'cancelled_at'])) {
             $updateData[$timestampField] = now();
         }
@@ -153,11 +164,11 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return DB::transaction(function () use ($user, $orderId, $notes) {
             $order = $this->getOrderForUser($user, $orderId);
-            
-            if (!$order) {
+
+            if (! $order) {
                 return [
                     'success' => false,
-                    'message' => 'Order not found or unauthorized.'
+                    'message' => 'Order not found or unauthorized.',
                 ];
             }
 
@@ -165,15 +176,17 @@ class OrderRepository implements OrderRepositoryInterface
             if ($order->status !== 'Pending') {
                 return [
                     'success' => false,
-                    'message' => 'Only pending orders can be confirmed.'
+                    'message' => 'Only pending orders can be confirmed.',
                 ];
             }
 
             // Validate stock before confirmation
             $stockValidation = $this->validateStockAvailability($order->items);
-            if (!$stockValidation['success']) {
+            if (! $stockValidation['success']) {
                 return $stockValidation;
             }
+
+            $previousStatus = $order->status;
 
             // Update order status
             $order->update([
@@ -185,10 +198,13 @@ class OrderRepository implements OrderRepositoryInterface
             // Deduct inventory
             $this->updateInventory($order, 'deduct');
 
+            // Send notifications
+            $this->notificationService->sendOrderStatusUpdateNotifications($order, $previousStatus, 'Confirmed');
+
             return [
                 'success' => true,
                 'data' => $order->fresh(),
-                'message' => 'Order confirmed and inventory updated successfully.'
+                'message' => 'Order confirmed and inventory updated successfully.',
             ];
         });
     }
@@ -199,20 +215,20 @@ class OrderRepository implements OrderRepositoryInterface
     public function cancelOrder(User $user, $orderId, ?string $reason = null): array
     {
         return DB::transaction(function () use ($user, $orderId, $reason) {
-            $order = $this->orderRepository->getOrderForUser($user, $orderId);
-            
-            if (!$order) {
+            $order = $this->getOrderForUser($user, $orderId);
+
+            if (! $order) {
                 return [
                     'success' => false,
-                    'message' => 'Order not found or unauthorized.'
+                    'message' => 'Order not found or unauthorized.',
                 ];
             }
 
             // Check if order can be cancelled
-            if (!in_array($order->status, ['pending', 'confirmed', 'processing'])) {
+            if (! in_array($order->status, ['Pending', 'Confirmed', 'Processing'])) {
                 return [
                     'success' => false,
-                    'message' => 'Order cannot be cancelled in its current status.'
+                    'message' => 'Order cannot be cancelled in its current status.',
                 ];
             }
 
@@ -221,22 +237,163 @@ class OrderRepository implements OrderRepositoryInterface
 
             // Update order status
             $order->update([
-                'status' => 'cancelled',
+                'status' => 'Cancelled',
                 'cancelled_at' => now(),
                 'admin_notes' => $reason ? "Cancelled from {$previousStatus}: {$reason}" : null,
             ]);
 
             // Restore inventory only if order was confirmed/processing
-            if (in_array($previousStatus, ['confirmed', 'processing'])) {
+            if (in_array($previousStatus, ['Confirmed', 'Processing'])) {
                 $this->updateInventory($order, 'restore');
             }
+
+            // Send notifications
+            $this->notificationService->sendOrderStatusUpdateNotifications($order, $previousStatus, 'Cancelled');
 
             return [
                 'success' => true,
                 'data' => $order->fresh(),
-                'message' => 'Order cancelled and inventory restored successfully.'
+                'message' => 'Order cancelled and inventory restored successfully.',
             ];
         });
+    }
+
+    /**
+     * Cancel vendor's specific order items (not the entire order)
+     */
+    public function cancelVendorOrderItems(User $user, $orderId, ?string $reason = null): array
+    {
+        return DB::transaction(function () use ($user, $orderId, $reason) {
+            $order = $this->getOrderForUser($user, $orderId);
+
+            if (! $order) {
+                return [
+                    'success' => false,
+                    'message' => 'Order not found or unauthorized.',
+                ];
+            }
+
+            // Check if order can have items cancelled
+            if (! in_array($order->status, ['Pending', 'Confirmed', 'Processing'])) {
+                return [
+                    'success' => false,
+                    'message' => 'Order items cannot be cancelled in current order status.',
+                ];
+            }
+
+            // Get vendor's items in this order
+            $vendorItems = $order->items->where('vendor_id', $user->vendor->id);
+
+            if ($vendorItems->isEmpty()) {
+                return [
+                    'success' => false,
+                    'message' => 'No items found for this vendor in the order.',
+                ];
+            }
+
+            $cancelledItems = [];
+            $restoredInventory = [];
+            $previousStatus = [];
+
+            // Cancel each vendor's item individually
+            foreach ($vendorItems as $item) {
+                // Only cancel items that aren't already cancelled or fulfilled
+                if (! in_array($item->fulfillment_status, ['Cancelled', 'Shipped', 'Delivered'])) {
+                    $item->update([
+                        'fulfillment_status' => 'Cancelled',
+                        'fulfillment_notes' => $reason ? "Vendor cancelled: {$reason}" : 'Vendor cancelled',
+                        'fulfilled_at' => now(),
+                    ]);
+
+                    $cancelledItems[] = $item;
+                    $previousStatus[] = $item->fulfillment_status;
+
+                    // Restore inventory for confirmed/processing items
+                    if (in_array($order->status, ['Confirmed', 'Processing'])) {
+                        $this->updateSingleItemInventory($item, 'restore');
+                        $restoredInventory[] = $item->id;
+                    }
+                }
+            }
+
+            // Send notifications
+            $this->notificationService->sendVendorOrderItemStatusUpdate(
+                $order,
+                $user->vendor->id,
+                $previousStatus,
+                'Cancelled'
+            );
+
+            // Check if all items in the order are now cancelled
+            $this->checkAndUpdateOrderStatus($order);
+
+            return [
+                'success' => true,
+                'data' => [
+                    'order' => $order->fresh(),
+                    'cancelled_items' => $cancelledItems,
+                    'restored_inventory_items' => $restoredInventory,
+                ],
+                'message' => 'Vendor order items cancelled successfully.',
+            ];
+        });
+    }
+
+    /**
+     * Check and update order status if all items are cancelled
+     */
+    protected function checkAndUpdateOrderStatus(Order $order): void
+    {
+        $allItems = $order->items;
+        $cancelledItems = $allItems->where('fulfillment_status', 'Cancelled');
+
+        // If all items are cancelled, cancel the entire order
+        if ($allItems->count() === $cancelledItems->count()) {
+            $order->update([
+                'status' => 'Cancelled',
+                'cancelled_at' => now(),
+                'admin_notes' => 'Order automatically cancelled: all vendor items cancelled',
+            ]);
+
+            \Log::info("Order {$order->id} automatically cancelled - all items cancelled by vendors");
+        }
+
+        // If some items are cancelled, update order notes
+        elseif ($cancelledItems->count() > 0) {
+            $cancelledVendors = $cancelledItems->pluck('vendor.business_name')->unique()->implode(', ');
+            $order->update([
+                'admin_notes' => "Partial cancellation: items from {$cancelledVendors} cancelled",
+            ]);
+        }
+    }
+
+    /**
+     * Update inventory for a single order item
+     */
+    protected function updateSingleItemInventory(OrderItem $item, string $action): void
+    {
+        if ($item->product_variant_id) {
+            $variant = \App\Models\ProductVariant::find($item->product_variant_id);
+
+            if ($variant) {
+                if ($action === 'restore') {
+                    $variant->increment('stock', $item->quantity);
+
+                    // Log inventory change
+                    \App\Models\InventoryLog::create([
+                        'product_id' => $item->product_id,
+                        'product_variant_id' => $item->product_variant_id,
+                        'order_id' => $item->order_id,
+                        'quantity' => $item->quantity,
+                        'action' => 'restore',
+                        'reason' => 'vendor_cancellation',
+                        'notes' => "Vendor cancelled order item: {$item->sku}",
+                        'previous_stock' => $variant->stock - $item->quantity,
+                        'new_stock' => $variant->stock,
+                    ]);
+                }
+            }
+        }
     }
 
     /**
@@ -244,7 +401,7 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function getOrdersByVendor(User $user, $vendorId, array $filters = []): LengthAwarePaginator
     {
-        if (!$user->hasRole('admin')) {
+        if (! $user->hasRole('admin')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -262,7 +419,7 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function getVendorOrderItems(User $user, array $filters = []): LengthAwarePaginator
     {
-        if (!$user->hasRole('vendor') || !$user->vendor) {
+        if (! $user->hasRole('vendor') || ! $user->vendor) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -270,15 +427,15 @@ class OrderRepository implements OrderRepositoryInterface
             ->where('vendor_id', $user->vendor->id);
 
         // Apply item-level filters
-        if (!empty($filters['fulfillment_status'])) {
+        if (! empty($filters['fulfillment_status'])) {
             $query->where('fulfillment_status', $filters['fulfillment_status']);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', $filters['date_from']);
         }
 
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
@@ -290,34 +447,34 @@ class OrderRepository implements OrderRepositoryInterface
      */
     protected function applyFilters($query, array $filters): void
     {
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['payment_status'])) {
+        if (! empty($filters['payment_status'])) {
             $query->where('payment_status', $filters['payment_status']);
         }
 
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', $filters['date_from']);
         }
 
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
-        if (!empty($filters['search'])) {
-            $query->where(function($q) use ($filters) {
+        if (! empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
                 $q->where('order_number', 'like', "%{$filters['search']}%")
-                  ->orWhere('customer_email', 'like', "%{$filters['search']}%")
-                  ->orWhereHas('user', function($q) use ($filters) {
-                      $q->where('name', 'like', "%{$filters['search']}%");
-                  });
+                    ->orWhere('customer_email', 'like', "%{$filters['search']}%")
+                    ->orWhereHas('user', function ($q) use ($filters) {
+                        $q->where('name', 'like', "%{$filters['search']}%");
+                    });
             });
         }
     }
 
-    // Inventory Update 
+    // Inventory Update
 
     /**
      * Update inventory based on action
@@ -342,14 +499,14 @@ class OrderRepository implements OrderRepositoryInterface
     protected function updateVariantInventory(OrderItem $item, string $action): void
     {
         $variant = \App\Models\ProductVariant::find($item->product_variant_id);
-        
-        if (!$variant) {
+
+        if (! $variant) {
             return;
         }
 
         if ($action === 'deduct') {
             $variant->decrement('stock', $item->quantity);
-            
+
             // Check low stock threshold
             if ($variant->stock <= $variant->low_stock_threshold) {
                 $this->notifyLowStock($variant);
@@ -367,8 +524,8 @@ class OrderRepository implements OrderRepositoryInterface
     protected function updateProductInventory(OrderItem $item, string $action): void
     {
         $product = \App\Models\Product::find($item->product_id);
-        
-        if (!$product) {
+
+        if (! $product) {
             return;
         }
 
@@ -387,13 +544,14 @@ class OrderRepository implements OrderRepositoryInterface
     protected function validateStockAvailability($items): array
     {
         $outOfStockItems = [];
-        
+
         foreach ($items as $item) {
             if ($item->product_variant_id) {
                 $variant = \App\Models\ProductVariant::find($item->product_variant_id);
-                
-                if (!$variant) {
+
+                if (! $variant) {
                     $outOfStockItems[] = "Variant not found for: {$item->product_name}";
+
                     continue;
                 }
 
@@ -403,18 +561,18 @@ class OrderRepository implements OrderRepositoryInterface
             }
         }
 
-        if (!empty($outOfStockItems)) {
+        if (! empty($outOfStockItems)) {
             return [
                 'success' => false,
                 'message' => 'Insufficient stock for some items.',
-                'out_of_stock_items' => $outOfStockItems
+                'out_of_stock_items' => $outOfStockItems,
             ];
         }
 
         return ['success' => true];
     }
 
-     /**
+    /**
      * Log inventory changes
      */
     protected function logInventoryChange(OrderItem $item, string $action, Order $order): void
@@ -439,8 +597,10 @@ class OrderRepository implements OrderRepositoryInterface
     {
         if ($item->product_variant_id) {
             $variant = \App\Models\ProductVariant::find($item->product_variant_id);
+
             return $variant ? $variant->stock + ($item->quantity) : null;
         }
+
         return null;
     }
 
@@ -451,8 +611,10 @@ class OrderRepository implements OrderRepositoryInterface
     {
         if ($item->product_variant_id) {
             $variant = \App\Models\ProductVariant::find($item->product_variant_id);
+
             return $variant ? $variant->stock : null;
         }
+
         return null;
     }
 
@@ -463,9 +625,9 @@ class OrderRepository implements OrderRepositoryInterface
     {
         // Implement low stock notification
         // This could be: email to admin, notification in dashboard, etc.
-        
+
         \Log::warning("Low stock alert for variant: {$variant->sku}, Current stock: {$variant->stock}");
-        
+
         // Example: Send notification to admin
         // Notification::send($adminUsers, new LowStockNotification($variant));
     }
@@ -475,20 +637,20 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function forceCancelOrder(User $user, $orderId, ?string $reason = null): array
     {
-        if (!$user->hasRole('admin')) {
+        if (! $user->hasRole('admin')) {
             return [
                 'success' => false,
-                'message' => 'Unauthorized action.'
+                'message' => 'Unauthorized action.',
             ];
         }
 
         return DB::transaction(function () use ($user, $orderId, $reason) {
             $order = $this->orderRepository->getOrderForUser($user, $orderId);
-            
-            if (!$order) {
+
+            if (! $order) {
                 return [
                     'success' => false,
-                    'message' => 'Order not found.'
+                    'message' => 'Order not found.',
                 ];
             }
 
@@ -509,7 +671,7 @@ class OrderRepository implements OrderRepositoryInterface
             return [
                 'success' => true,
                 'data' => $order->fresh(),
-                'message' => 'Order force cancelled successfully.'
+                'message' => 'Order force cancelled successfully.',
             ];
         });
     }

@@ -3,11 +3,11 @@
 namespace App\Providers;
 
 use App\Interfaces\Auth\AuthRepositoryInterface;
-use App\Interfaces\Products\ProductRepositoryInterface;
-use App\Repositories\Products\ProductRepository;
 use App\Interfaces\Orders\OrderRepositoryInterface;
-use App\Repositories\Orders\OrderRepository;
+use App\Interfaces\Products\ProductRepositoryInterface;
 use App\Repositories\Auth\AuthRepository;
+use App\Repositories\Orders\OrderRepository;
+use App\Repositories\Products\ProductRepository;
 use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
