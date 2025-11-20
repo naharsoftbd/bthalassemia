@@ -37,7 +37,9 @@ class ProductController extends BaseController
     {
         $product = $this->productService->create($request->validated());
 
-        return new ProductResource($product);
+        return (new ProductResource($product))
+            ->response()
+            ->setStatusCode(201);;
     }
 
     public function show(Product $product)

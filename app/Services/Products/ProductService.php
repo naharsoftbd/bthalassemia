@@ -19,7 +19,7 @@ class ProductService
         return $this->products->paginated($filters);
     }
 
-    public function get(int $id)
+    public function find(int $id)
     {
         return $this->products->find($id);
     }

@@ -55,6 +55,11 @@ class AuthenticationTest extends TestCase
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
 
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => $this->user->email,
+            'password' => 'wrong-password',
+        ]);
+
         $this->post('/login', [
             'email' => $this->user->email,
             'password' => 'wrong-password',
