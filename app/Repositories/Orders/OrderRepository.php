@@ -157,10 +157,10 @@ class OrderRepository implements OrderRepositoryInterface
         $order->update($updateData);
 
         return [
-                'success' => true,
-                'data' => $order->fresh(),
-                'message' => 'Order Status updated successfully.',
-            ];
+            'success' => true,
+            'data' => $order->fresh(),
+            'message' => 'Order Status updated successfully.',
+        ];
     }
 
     /**

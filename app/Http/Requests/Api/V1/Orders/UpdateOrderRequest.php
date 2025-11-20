@@ -24,6 +24,10 @@ class UpdateOrderRequest extends FormRequest
     {
         $order = $this->route('order');
 
+        if (is_numeric($order)) {
+            $order = \App\Models\Order::findOrFail($order);
+        }
+
         return [
             // Order status updates (Admin/Vendor)
             'status' => [
@@ -163,6 +167,10 @@ class UpdateOrderRequest extends FormRequest
         $validator->after(function ($validator) {
             $order = $this->route('order');
 
+            if (! $order instanceof \App\Models\Order) {
+                $order = \App\Models\Order::findOrFail($order);
+            }
+
             // Validate that order can be updated
             if (! $this->validateOrderCanBeUpdated($order)) {
                 $validator->errors()->add('order', 'This order cannot be updated in its current state.');
@@ -178,8 +186,12 @@ class UpdateOrderRequest extends FormRequest
      */
     protected function validateOrderCanBeUpdated($order): bool
     {
+        if (! $order instanceof \App\Models\Order) {
+            $order = \App\Models\Order::findOrFail($order);
+        }
+
         // Cannot update cancelled or refunded orders
-        if (in_array($order->status, ['Cancelled', 'Refunded'])) {
+        if (in_array($order?->status, ['Cancelled', 'Refunded'])) {
             return false;
         }
 
@@ -218,7 +230,11 @@ class UpdateOrderRequest extends FormRequest
     {
         $user = auth()->user();
 
-        // Customers can only update their own orders and only specific fields
+        if (! $order instanceof \App\Models\Order) {
+            $order = \App\Models\Order::findOrFail($order);
+        }
+
+        // Customers can only update their own orders
         if ($user->hasRole('customer') && $order->user_id !== $user->id) {
             $validator->errors()->add('order', 'You can only update your own orders.');
 
@@ -227,16 +243,19 @@ class UpdateOrderRequest extends FormRequest
 
         if ($user->hasRole('customer')) {
             $allowedFields = ['customer_phone', 'shipping_address', 'billing_address'];
-            $disallowedFields = array_diff(array_keys($this->all()), $allowedFields);
 
-            if (! empty($disallowedFields)) {
-                foreach ($disallowedFields as $field) {
+            // Only check fields actually sent AND not null
+            foreach ($this->input() as $field => $value) {
+                if (! in_array($field, $allowedFields) || is_null($value)) {
+                    continue; // skip null or disallowed fields
+                }
+
+                if (! in_array($field, $allowedFields)) {
                     $validator->errors()->add($field, 'You are not authorized to update this field.');
                 }
             }
         }
 
-        // Vendors can only update fulfillment-related fields through specific endpoints
         if ($user->hasRole('vendor')) {
             $validator->errors()->add('order', 'Vendors must use fulfillment endpoints to update order items.');
         }

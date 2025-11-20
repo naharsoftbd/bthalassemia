@@ -174,19 +174,20 @@ Browser Tests: 70%
 Production Setup
 Environment setup
 
-bash
+
 composer install --optimize-autoloader --no-dev
-npm run build
+
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-Queue workers
 
-bash
-php artisan queue:work --daemon
+
+# Queue workers
+
+php artisan queue:work --
+
 Scheduler
 
-bash
 * * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
 
 Database indexing & query optimization
@@ -199,8 +200,6 @@ Horizontal scaling support
 Database replication ready
 
 Queue workers for background jobs
-
-CDN integration
 
 🔒 Security
 CSRF protection

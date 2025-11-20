@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Api\V1\Products;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class ImportProductsRequest extends FormRequest
 {
@@ -41,7 +41,7 @@ class ImportProductsRequest extends FormRequest
         throw new ValidationException($validator, response()->json([
             'success' => false,
             'message' => 'Validation failed',
-            'errors' => $validator->errors()
+            'errors' => $validator->errors(),
         ], 422));
     }
 

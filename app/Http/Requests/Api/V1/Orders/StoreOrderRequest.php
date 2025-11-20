@@ -213,7 +213,7 @@ class StoreOrderRequest extends FormRequest
      */
     protected function validateStockAvailability($validator): void
     {
-        if (!is_array($this->items)) {
+        if (! is_array($this->items)) {
             return; // Skip if items are not provided (for required field validation)
         }
 

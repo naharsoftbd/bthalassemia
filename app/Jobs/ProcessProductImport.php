@@ -33,7 +33,7 @@ class ProcessProductImport implements ShouldQueue
     public function handle(ProductImportService $importService): void
     {
         try {
-            $file = new \Illuminate\Http\File(public_path('storage/' . $this->filePath));
+            $file = new \Illuminate\Http\File(public_path('storage/'.$this->filePath));
 
             $results = $importService->importProducts(
                 new \Illuminate\Http\UploadedFile(

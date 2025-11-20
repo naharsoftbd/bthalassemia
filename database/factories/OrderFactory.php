@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class OrderFactory extends Factory
@@ -12,11 +13,11 @@ class OrderFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => null, // always provided in tests
-            'order_number' => 'ORD-' . $this->faker->unique()->numerify('######'),
+            'user_id' => User::factory(), // always provided in tests
+            'order_number' => 'ORD-'.$this->faker->unique()->numerify('######'),
 
             'status' => $this->faker->randomElement([
-                'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'
+                'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled',
             ]),
 
             'subtotal' => $this->faker->randomFloat(2, 50, 500),
@@ -25,7 +26,7 @@ class OrderFactory extends Factory
             'discount_amount' => $this->faker->randomFloat(2, 0, 20),
             'total' => $this->faker->randomFloat(2, 60, 6000),
 
-            'customer_email' => null, // provided in tests
+            'customer_email' => User::factory(), // provided in tests
             'customer_phone' => $this->faker->phoneNumber(),
 
             'shipping_address' => [

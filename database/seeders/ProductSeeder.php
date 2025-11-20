@@ -21,6 +21,7 @@ class ProductSeeder extends Seeder
 
         if ($vendors->isEmpty()) {
             $this->command->warn('No vendors found. Please run VendorSeeder first.');
+
             return;
         }
 
@@ -34,7 +35,7 @@ class ProductSeeder extends Seeder
             $product = Product::create([
                 'vendor_id' => $vendor->id,
                 'name' => $productData['name'],
-                'slug' => Str::slug($productData['name']) . '-' . uniqid(),
+                'slug' => Str::slug($productData['name']).'-'.uniqid(),
                 'description' => $productData['description'],
                 'short_description' => $productData['short_description'],
                 'base_price' => $productData['base_price'],
@@ -64,7 +65,7 @@ class ProductSeeder extends Seeder
             }
         }
 
-        $this->command->info('Successfully seeded ' . count($products) . ' products with variants.');
+        $this->command->info('Successfully seeded '.count($products).' products with variants.');
     }
 
     protected function getProductData(): array
@@ -91,10 +92,10 @@ class ProductSeeder extends Seeder
                             'color' => 'Natural Titanium',
                             'storage' => '128GB',
                             'connectivity' => '5G',
-                            'chip' => 'A17 Pro'
+                            'chip' => 'A17 Pro',
                         ],
                         'barcode' => '194253957301',
-                        'weight' => 0.187
+                        'weight' => 0.187,
                     ],
                     [
                         'sku' => 'IP15P-256-BLK',
@@ -107,12 +108,12 @@ class ProductSeeder extends Seeder
                             'color' => 'Black Titanium',
                             'storage' => '256GB',
                             'connectivity' => '5G',
-                            'chip' => 'A17 Pro'
+                            'chip' => 'A17 Pro',
                         ],
                         'barcode' => '194253957318',
-                        'weight' => 0.187
-                    ]
-                ]
+                        'weight' => 0.187,
+                    ],
+                ],
             ],
 
             [
@@ -135,12 +136,12 @@ class ProductSeeder extends Seeder
                             'color' => 'Titanium Gray',
                             'storage' => '256GB',
                             'connectivity' => '5G',
-                            'chip' => 'Snapdragon 8 Gen 3'
+                            'chip' => 'Snapdragon 8 Gen 3',
                         ],
                         'barcode' => '887276654321',
-                        'weight' => 0.232
-                    ]
-                ]
+                        'weight' => 0.232,
+                    ],
+                ],
             ],
 
             [
@@ -163,10 +164,10 @@ class ProductSeeder extends Seeder
                             'color' => 'Black',
                             'connectivity' => 'Bluetooth 5.2',
                             'battery_life' => '30 hours',
-                            'noise_canceling' => 'Yes'
+                            'noise_canceling' => 'Yes',
                         ],
                         'barcode' => '027242924311',
-                        'weight' => 0.250
+                        'weight' => 0.250,
                     ],
                     [
                         'sku' => 'SONY-XM5-SIL',
@@ -179,12 +180,12 @@ class ProductSeeder extends Seeder
                             'color' => 'Silver',
                             'connectivity' => 'Bluetooth 5.2',
                             'battery_life' => '30 hours',
-                            'noise_canceling' => 'Yes'
+                            'noise_canceling' => 'Yes',
                         ],
                         'barcode' => '027242924328',
-                        'weight' => 0.250
-                    ]
-                ]
+                        'weight' => 0.250,
+                    ],
+                ],
             ],
 
             // Fashion Category
@@ -208,10 +209,10 @@ class ProductSeeder extends Seeder
                             'color' => 'Black/Red',
                             'size' => '9',
                             'material' => 'Leather',
-                            'style' => 'High Top'
+                            'style' => 'High Top',
                         ],
                         'barcode' => '888834567890',
-                        'weight' => 0.800
+                        'weight' => 0.800,
                     ],
                     [
                         'sku' => 'AJ1-BLK-RED-10',
@@ -224,10 +225,10 @@ class ProductSeeder extends Seeder
                             'color' => 'Black/Red',
                             'size' => '10',
                             'material' => 'Leather',
-                            'style' => 'High Top'
+                            'style' => 'High Top',
                         ],
                         'barcode' => '888834567907',
-                        'weight' => 0.820
+                        'weight' => 0.820,
                     ],
                     [
                         'sku' => 'AJ1-WHT-BLK-9',
@@ -240,12 +241,12 @@ class ProductSeeder extends Seeder
                             'color' => 'White/Black',
                             'size' => '9',
                             'material' => 'Leather',
-                            'style' => 'High Top'
+                            'style' => 'High Top',
                         ],
                         'barcode' => '888834567914',
-                        'weight' => 0.800
-                    ]
-                ]
+                        'weight' => 0.800,
+                    ],
+                ],
             ],
 
             [
@@ -269,10 +270,10 @@ class ProductSeeder extends Seeder
                             'waist' => '32',
                             'length' => '32',
                             'fit' => 'Slim',
-                            'material' => '98% Cotton, 2% Elastane'
+                            'material' => '98% Cotton, 2% Elastane',
                         ],
                         'barcode' => '188153011111',
-                        'weight' => 0.450
+                        'weight' => 0.450,
                     ],
                     [
                         'sku' => 'LEV-511-BLK-34-32',
@@ -286,12 +287,12 @@ class ProductSeeder extends Seeder
                             'waist' => '34',
                             'length' => '32',
                             'fit' => 'Slim',
-                            'material' => '98% Cotton, 2% Elastane'
+                            'material' => '98% Cotton, 2% Elastane',
                         ],
                         'barcode' => '188153011128',
-                        'weight' => 0.450
-                    ]
-                ]
+                        'weight' => 0.450,
+                    ],
+                ],
             ],
 
             // Home & Kitchen
@@ -315,10 +316,10 @@ class ProductSeeder extends Seeder
                             'capacity' => '6 Quart',
                             'color' => 'Stainless Steel',
                             'functions' => '9-in-1',
-                            'power' => '1000W'
+                            'power' => '1000W',
                         ],
                         'barcode' => '681131400101',
-                        'weight' => 5.200
+                        'weight' => 5.200,
                     ],
                     [
                         'sku' => 'INST-DUO-8QT',
@@ -331,12 +332,12 @@ class ProductSeeder extends Seeder
                             'capacity' => '8 Quart',
                             'color' => 'Stainless Steel',
                             'functions' => '9-in-1',
-                            'power' => '1200W'
+                            'power' => '1200W',
                         ],
                         'barcode' => '681131400118',
-                        'weight' => 6.100
-                    ]
-                ]
+                        'weight' => 6.100,
+                    ],
+                ],
             ],
 
             [
@@ -359,12 +360,12 @@ class ProductSeeder extends Seeder
                             'color' => 'Blue/Nickel',
                             'battery_life' => '60 minutes',
                             'suction_power' => '185 AW',
-                            'dustbin_capacity' => '0.76L'
+                            'dustbin_capacity' => '0.76L',
                         ],
                         'barcode' => '871294301234',
-                        'weight' => 3.050
-                    ]
-                ]
+                        'weight' => 3.050,
+                    ],
+                ],
             ],
 
             // Beauty & Personal Care
@@ -388,10 +389,10 @@ class ProductSeeder extends Seeder
                             'color' => 'Fuchsia',
                             'power' => '1600W',
                             'speed_settings' => '3',
-                            'heat_settings' => '4'
+                            'heat_settings' => '4',
                         ],
                         'barcode' => '871294302345',
-                        'weight' => 1.100
+                        'weight' => 1.100,
                     ],
                     [
                         'sku' => 'DYSON-HD-SILVER',
@@ -404,12 +405,12 @@ class ProductSeeder extends Seeder
                             'color' => 'Silver',
                             'power' => '1600W',
                             'speed_settings' => '3',
-                            'heat_settings' => '4'
+                            'heat_settings' => '4',
                         ],
                         'barcode' => '871294302352',
-                        'weight' => 1.100
-                    ]
-                ]
+                        'weight' => 1.100,
+                    ],
+                ],
             ],
 
             // Sports & Outdoors
@@ -433,10 +434,10 @@ class ProductSeeder extends Seeder
                             'color' => 'White',
                             'capacity' => '65 Quarts',
                             'ice_retention' => '5+ days',
-                            'bear_resistant' => 'Yes'
+                            'bear_resistant' => 'Yes',
                         ],
                         'barcode' => '818279012345',
-                        'weight' => 23.100
+                        'weight' => 23.100,
                     ],
                     [
                         'sku' => 'YETI-T65-TAN',
@@ -449,12 +450,12 @@ class ProductSeeder extends Seeder
                             'color' => 'Tan',
                             'capacity' => '65 Quarts',
                             'ice_retention' => '5+ days',
-                            'bear_resistant' => 'Yes'
+                            'bear_resistant' => 'Yes',
                         ],
                         'barcode' => '818279012352',
-                        'weight' => 23.100
-                    ]
-                ]
+                        'weight' => 23.100,
+                    ],
+                ],
             ],
 
             // Books & Media
@@ -478,13 +479,13 @@ class ProductSeeder extends Seeder
                             'format' => 'Hardcover',
                             'pages' => '256',
                             'author' => 'Morgan Housel',
-                            'language' => 'English'
+                            'language' => 'English',
                         ],
                         'barcode' => '9780857197689',
-                        'weight' => 0.450
-                    ]
-                ]
-            ]
+                        'weight' => 0.450,
+                    ],
+                ],
+            ],
         ];
     }
 }

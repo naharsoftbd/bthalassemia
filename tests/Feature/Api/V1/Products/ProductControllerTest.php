@@ -15,39 +15,38 @@ class ProductControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected $serviceMock;
 
     protected function setUp(): void
-{
-    parent::setUp();
+    {
+        parent::setUp();
 
-    // Disable ALL middleware first (Laravel 12 requires this)
-    $this->withoutMiddleware();
+        // Disable ALL middleware first (Laravel 12 requires this)
+        $this->withoutMiddleware();
 
-    // Then disable specific JWT middleware aliases
-    $this->withoutMiddleware([
-        \Tymon\JWTAuth\Http\Middleware\Authenticate::class, // jwt.verify
-        \App\Http\Middleware\JwtRefreshMiddleware::class,    // jwt.refresh
-    ]);
+        // Then disable specific JWT middleware aliases
+        $this->withoutMiddleware([
+            \Tymon\JWTAuth\Http\Middleware\Authenticate::class, // jwt.verify
+            \App\Http\Middleware\JwtRefreshMiddleware::class,    // jwt.refresh
+        ]);
 
-    // Seed permissions
-    $this->seed(PermissionSeeder::class);
+        // Seed permissions
+        $this->seed(PermissionSeeder::class);
 
-    // Auth user with roles
-    $this->user = User::factory()->create();
-    $this->user->assignRole('Admin');
-    $this->actingAs($this->user, 'api');
+        // Auth user with roles
+        $this->user = User::factory()->create();
+        $this->user->assignRole('Admin');
+        $this->actingAs($this->user, 'api');
 
-    // Mock ProductService
-    $this->serviceMock = $this->createMock(ProductService::class);
-    $this->app->instance(ProductService::class, $this->serviceMock);
+        // Mock ProductService
+        $this->serviceMock = $this->createMock(ProductService::class);
+        $this->app->instance(ProductService::class, $this->serviceMock);
 
-    // Allow permissions
-    Gate::shouldReceive('check')->andReturn(true);
-}
+        // Allow permissions
+        Gate::shouldReceive('check')->andReturn(true);
+    }
 
-
-    
     public function test_lists_products()
     {
         $fakeProducts = Product::factory()->count(2)->make();
@@ -64,7 +63,6 @@ class ProductControllerTest extends TestCase
             ->assertJsonCount(2, 'data');
     }
 
-    
     public function test_creates_a_product()
     {
         $payload = [
@@ -88,7 +86,6 @@ class ProductControllerTest extends TestCase
             ->assertJsonPath('data.name', 'New Product');
     }
 
-    
     public function test_shows_a_product()
     {
         $product = Product::factory()->create();
@@ -110,7 +107,6 @@ class ProductControllerTest extends TestCase
             ->assertJsonPath('data.id', $product->id);
     }
 
-    
     public function test_updates_a_product()
     {
         $product = Product::factory()->create();
@@ -136,7 +132,6 @@ class ProductControllerTest extends TestCase
             ->assertJsonPath('data.name', 'Updated Name');
     }
 
-    
     public function test_deletes_a_product()
     {
         $product = Product::factory()->create();

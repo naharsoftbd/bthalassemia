@@ -6,7 +6,6 @@ use App\Http\Controllers\BaseController;
 use App\Http\Requests\Api\V1\Products\StoreProductRequest;
 use App\Http\Requests\Api\V1\Products\UpdateProductRequest;
 use App\Http\Resources\V1\Products\ProductResource;
-use App\Models\Product;
 use App\Services\Products\ProductService;
 use Illuminate\Http\Request;
 
@@ -39,15 +38,16 @@ class ProductController extends BaseController
 
         return (new ProductResource($product))
             ->response()
-            ->setStatusCode(201);;
+            ->setStatusCode(201);
     }
 
     public function show($id)
     {
-        $product =$this->productService->find($id);
+        $product = $this->productService->find($id);
+
         return (new ProductResource($product->load('variants')))
             ->response()
-            ->setStatusCode(201);;
+            ->setStatusCode(201);
     }
 
     public function update(UpdateProductRequest $request, $id)

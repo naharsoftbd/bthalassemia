@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Api\V1\Products;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Products\ImportProductsRequest;
+use App\Jobs\ProcessProductImport;
 use App\Services\Products\ProductImportService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use App\Jobs\ProcessProductImport;
 
 class ProductImportController extends Controller
 {
@@ -22,111 +22,111 @@ class ProductImportController extends Controller
      * Import products from CSV
      */
     public function import(ImportProductsRequest $request): JsonResponse
-{
-    \Log::info('🎯 IMPORT CONTROLLER METHOD CALLED', [
-        'timestamp' => now()->toDateTimeString(),
-        'user_id' => auth()->id(),
-        'user_email' => auth()->user()->email,
-        'user_roles' => auth()->user()->getRoleNames(),
-        'request_type' => get_class($request),
-    ]);
-
-    try {
-        \Log::info('🔍 READING REQUEST DATA', [
-            'vendor_id' => $request->vendor_id,
-            'update_existing' => $request->update_existing,
-            'has_csv_file' => $request->hasFile('csv_file'),
-            'file_name' => $request->file('csv_file') ? $request->file('csv_file')->getClientOriginalName() : 'NO FILE',
-            'all_input' => $request->all(),
+    {
+        \Log::info('🎯 IMPORT CONTROLLER METHOD CALLED', [
+            'timestamp' => now()->toDateTimeString(),
+            'user_id' => auth()->id(),
+            'user_email' => auth()->user()->email,
+            'user_roles' => auth()->user()->getRoleNames(),
+            'request_type' => get_class($request),
         ]);
 
-        $vendorId = (int) $request->vendor_id;
-        $updateExisting = $request->boolean('update_existing', false);
+        try {
+            \Log::info('🔍 READING REQUEST DATA', [
+                'vendor_id' => $request->vendor_id,
+                'update_existing' => $request->update_existing,
+                'has_csv_file' => $request->hasFile('csv_file'),
+                'file_name' => $request->file('csv_file') ? $request->file('csv_file')->getClientOriginalName() : 'NO FILE',
+                'all_input' => $request->all(),
+            ]);
 
-        \Log::info('👤 CHECKING USER AUTHORIZATION', [
-            'user_has_vendor_role' => auth()->user()->hasRole('vendor'),
-            'user_vendor_id' => auth()->user()->vendor->id ?? 'NO VENDOR PROFILE',
-            'request_vendor_id' => $vendorId,
-        ]);
+            $vendorId = (int) $request->vendor_id;
+            $updateExisting = $request->boolean('update_existing', false);
 
-        // Check vendor authorization
-        if (auth()->user()->hasRole('vendor')) {
-            \Log::info('🔐 VENDOR AUTHORIZATION CHECK', [
-                'user_vendor_id' => auth()->user()->vendor->id,
+            \Log::info('👤 CHECKING USER AUTHORIZATION', [
+                'user_has_vendor_role' => auth()->user()->hasRole('vendor'),
+                'user_vendor_id' => auth()->user()->vendor->id ?? 'NO VENDOR PROFILE',
                 'request_vendor_id' => $vendorId,
             ]);
 
-            if (!$vendorId || $vendorId !== auth()->user()->vendor->id) {
-                \Log::warning('🚫 VENDOR AUTHORIZATION FAILED', [
-                    'reason' => 'Vendor ID mismatch or missing',
+            // Check vendor authorization
+            if (auth()->user()->hasRole('vendor')) {
+                \Log::info('🔐 VENDOR AUTHORIZATION CHECK', [
                     'user_vendor_id' => auth()->user()->vendor->id,
                     'request_vendor_id' => $vendorId,
                 ]);
 
+                if (! $vendorId || $vendorId !== auth()->user()->vendor->id) {
+                    \Log::warning('🚫 VENDOR AUTHORIZATION FAILED', [
+                        'reason' => 'Vendor ID mismatch or missing',
+                        'user_vendor_id' => auth()->user()->vendor->id,
+                        'request_vendor_id' => $vendorId,
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You can only import products for your own vendor account.',
+                    ], 403);
+                }
+                $vendorId = auth()->user()->vendor->id;
+
+                \Log::info('✅ VENDOR AUTHORIZATION PASSED', [
+                    'final_vendor_id' => $vendorId,
+                ]);
+            }
+
+            \Log::info('🚀 STARTING PRODUCT IMPORT', [
+                'final_vendor_id' => $vendorId,
+                'update_existing' => $updateExisting,
+                'file_size' => $request->file('csv_file')->getSize(),
+            ]);
+
+            $results = $this->importService->importProducts(
+                $request->file('csv_file'),
+                $vendorId,
+                $updateExisting
+            );
+
+            \Log::info('📊 IMPORT RESULTS', $results);
+
+            if (! empty($results['errors'])) {
+                \Log::warning('⚠️ IMPORT COMPLETED WITH ERRORS', [
+                    'error_count' => count($results['errors']),
+                    'success_count' => $results['successful'],
+                ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'You can only import products for your own vendor account.',
-                ], 403);
+                    'message' => 'Import completed with errors.',
+                    'data' => $results,
+                ], 422);
             }
-            $vendorId = auth()->user()->vendor->id;
-            
-            \Log::info('✅ VENDOR AUTHORIZATION PASSED', [
-                'final_vendor_id' => $vendorId,
+
+            \Log::info('🎉 IMPORT SUCCESSFUL', [
+                'imported_count' => $results['successful'],
             ]);
-        }
 
-        \Log::info('🚀 STARTING PRODUCT IMPORT', [
-            'final_vendor_id' => $vendorId,
-            'update_existing' => $updateExisting,
-            'file_size' => $request->file('csv_file')->getSize(),
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Products imported successfully.',
+                'data' => $results,
+            ]);
 
-        $results = $this->importService->importProducts(
-            $request->file('csv_file'),
-            $vendorId,
-            $updateExisting
-        );
-
-        \Log::info('📊 IMPORT RESULTS', $results);
-
-        if (!empty($results['errors'])) {
-            \Log::warning('⚠️ IMPORT COMPLETED WITH ERRORS', [
-                'error_count' => count($results['errors']),
-                'success_count' => $results['successful'],
+        } catch (\Exception $e) {
+            \Log::error('💥 IMPORT FAILED WITH EXCEPTION', [
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'error_trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Import completed with errors.',
-                'data' => $results,
-            ], 422);
+                'message' => 'Failed to import products.',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-
-        \Log::info('🎉 IMPORT SUCCESSFUL', [
-            'imported_count' => $results['successful'],
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Products imported successfully.',
-            'data' => $results,
-        ]);
-
-    } catch (\Exception $e) {
-        \Log::error('💥 IMPORT FAILED WITH EXCEPTION', [
-            'error_message' => $e->getMessage(),
-            'error_file' => $e->getFile(),
-            'error_line' => $e->getLine(),
-            'error_trace' => $e->getTraceAsString(),
-        ]);
-
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to import products.',
-            'error' => config('app.debug') ? $e->getMessage() : null,
-        ], 500);
     }
-}
 
     public function downloadTemplate(): StreamedResponse
     {
@@ -316,6 +316,4 @@ class ProductImportController extends Controller
             ], 500);
         }
     }
-
-    
 }
