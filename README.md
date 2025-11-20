@@ -164,6 +164,9 @@ System configuration
 cp .env .env.testing
 
 # Edit .env.testing file with your database credentials
+
+APP_ENV=testing
+
 DB_DATABASE=bthalassemia_testing
 
 DB_USERNAME=your_username
