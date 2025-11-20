@@ -103,9 +103,9 @@ Supervisor - Process Management
 
 Horizon - Queue Monitoring
 
-📁 Project Structure
-text
+📁 Project Structure 
 bthalassemia/
+
 ├── app/
 │   ├── Models/              # Eloquent Models
 │   ├── Http/Controllers/    # Application Controllers
@@ -127,7 +127,8 @@ bthalassemia/
 
 👥 User Roles
 
-🛒 Customer
+🛒 
+
 Browse products & categories
 
 Place orders & track shipments
@@ -135,6 +136,7 @@ Place orders & track shipments
 Write reviews & manage profile
 
 🏪 Vendor
+
 Manage product catalog
 
 Process orders
@@ -144,6 +146,7 @@ View sales reports
 Manage store profile
 
 👑 Administrator
+
 Full system access
 
 Product management with bulk operations
@@ -155,8 +158,19 @@ Customer management
 System configuration
 
 🧪 Testing
-bash
+
 # Run PHP tests
+
+cp .env .env.testing
+
+# Edit .env.testing file with your database credentials
+DB_DATABASE=bthalassemia_testing
+
+DB_USERNAME=your_username
+
+DB_PASSWORD=your_password
+
+
 php artisan test
 
 
@@ -164,11 +178,8 @@ php artisan test
 vendor/bin/phpunit --coverage-html coverage
 Test Coverage:
 
-Unit Tests: 85%
+Feature Tests: 100%
 
-Feature Tests: 90%
-
-Browser Tests: 70%
 
 🚀 Deployment
 Production Setup
@@ -177,8 +188,10 @@ Environment setup
 
 composer install --optimize-autoloader --no-dev
 
-php artisan config:cache
+php artisan config:
+
 php artisan route:cache
+
 php artisan view:cache
 
 
