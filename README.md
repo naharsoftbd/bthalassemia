@@ -287,11 +287,12 @@ Push to the branch (git push origin feature/AmazingFeature)
 Open a Pull Request
 
 📞 Support
-Documentation: https://docs.your-store.com
 
-Community Forum: https://community.your-store.com
+Name: Abu Jafar Md. Salah
 
-Email Support: support@your-store.com
+Emila: abusalah01diu@gmail.com
+
+Github Profile : https://github.com/naharsoftbd
 
 Issues: GitHub Issues
 
