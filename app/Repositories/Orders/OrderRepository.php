@@ -134,7 +134,7 @@ class OrderRepository implements OrderRepositoryInterface
     /**
      * Update order status (Admin/Vendor)
      */
-    public function updateOrderStatus(User $user, $orderId, string $status, ?string $notes = null): bool
+    public function updateOrderStatus(User $user, $orderId, string $status, ?string $notes = null): array
     {
         $order = $this->getOrderForUser($user, $orderId);
 
@@ -154,7 +154,13 @@ class OrderRepository implements OrderRepositoryInterface
             $updateData['admin_notes'] = $notes;
         }
 
-        return $order->update($updateData);
+        $order->update($updateData);
+
+        return [
+                'success' => true,
+                'data' => $order->fresh(),
+                'message' => 'Order Status updated successfully.',
+            ];
     }
 
     /**

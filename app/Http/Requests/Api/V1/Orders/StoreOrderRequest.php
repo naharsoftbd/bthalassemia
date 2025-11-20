@@ -39,7 +39,7 @@ class StoreOrderRequest extends FormRequest
             'shipping_address.country' => 'required|string|max:255',
             'shipping_address.zip_code' => 'required|string|max:20',
 
-            'billing_address' => 'sometimes|array',
+            'billing_address' => 'required|array',
             'billing_address.street' => 'required_with:billing_address|string|max:255',
             'billing_address.city' => 'required_with:billing_address|string|max:255',
             'billing_address.state' => 'required_with:billing_address|string|max:255',
@@ -213,6 +213,10 @@ class StoreOrderRequest extends FormRequest
      */
     protected function validateStockAvailability($validator): void
     {
+        if (!is_array($this->items)) {
+            return; // Skip if items are not provided (for required field validation)
+        }
+
         foreach ($this->items as $index => $item) {
             if (isset($item['product_variant_id'])) {
                 $variant = \App\Models\ProductVariant::find($item['product_variant_id']);

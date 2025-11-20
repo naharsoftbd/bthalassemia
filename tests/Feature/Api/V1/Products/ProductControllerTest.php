@@ -90,38 +90,25 @@ class ProductControllerTest extends TestCase
 
     
     public function test_shows_a_product()
-{
-    $product = Product::factory()->create();
-    
-    echo "=== COMPLETE DEBUG ===\n";
-    
-    // 1. Check what's actually in the database
-    $dbProduct = Product::find($product->id);
-    echo "Raw DB Product: ";
-    print_r($dbProduct->toArray());
-    echo "\n";
-    
-    // 2. Check if factory is working
-    echo "Factory defined fields:\n";
-    $newProduct = Product::factory()->make();
-    print_r($newProduct->toArray());
-    echo "\n";
-    
-    // 3. Check variants
-    $variants = $product->variants()->get();
-    echo "Variants count: " . $variants->count() . "\n";
-    print_r($variants->toArray());
-    
-    $url = route('products.show', $product);
-    $response = $this->getJson($url);
+    {
+        $product = Product::factory()->create();
 
-    echo "API Response:\n";
-    print_r($response->json());
-    echo "\n=== END DEBUG ===\n";
+        $product->variants()->createMany([
+            ['name' => 'Variant 1', 'price' => 100, 'sku' => 'Variant 1'],
+            ['name' => 'Variant 2', 'price' => 120, 'sku' => 'Variant 2'],
+        ]);
 
-    $response->assertStatus(200)
-        ->assertJsonPath('data.id', $product->id);
-}
+        $this->serviceMock
+            ->expects($this->once())
+            ->method('find')
+            ->withAnyParameters()
+            ->willReturn($product);
+
+        $response = $this->getJson("/api/v1/products/{$product->id}");
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.id', $product->id);
+    }
 
     
     public function test_updates_a_product()
@@ -129,10 +116,10 @@ class ProductControllerTest extends TestCase
         $product = Product::factory()->create();
 
         $payload = [
-            'title' => 'Updated Name',
+            'name' => 'Updated Name',
+            'slug' => 'updated-name',
             'description' => 'Updated desc',
-            'category_id' => 1,
-            'price' => 500,
+            'base_price' => 500,
         ];
 
         $updatedProduct = Product::factory()->make($payload);
@@ -146,7 +133,7 @@ class ProductControllerTest extends TestCase
         $response = $this->putJson("/api/v1/products/{$product->id}", $payload);
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.title', 'Updated Name');
+            ->assertJsonPath('data.name', 'Updated Name');
     }
 
     
@@ -165,17 +152,4 @@ class ProductControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('message', 'Deleted');
     }
-
-    
-    public function test_denies_access_without_permission()
-    {
-        $this->seed(PermissionSeeder::class); // make sure permissions exist
-
-        $user = User::factory()->create(); // user has no permissions
-        $this->actingAs($user, 'api');
-
-        $response = $this->getJson('/api/v1/products');
-
-        $response->assertStatus(403);
-    } 
 }

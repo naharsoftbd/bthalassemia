@@ -48,6 +48,7 @@ Route::middleware(['jwt.verify', 'jwt.refresh'])->group(function () {
         // Parameter routes LAST
         Route::get('{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::put('{order}', [OrderController::class, 'update'])->name('orders.update');
+        Route::patch('{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
         Route::delete('{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
     });
 

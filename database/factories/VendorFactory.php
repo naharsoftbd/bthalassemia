@@ -17,7 +17,7 @@ class VendorFactory extends Factory
             'contact_person' => $this->faker->name(),
             'phone' => $this->faker->phoneNumber(),
             'address' => $this->faker->address(),
-            'is_approved' => $this->faker->boolean(80), // 80% approved
+            'is_approved' => true, // 80% approved
         ];
     }
 

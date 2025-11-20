@@ -26,7 +26,7 @@ interface OrderRepositoryInterface
     /**
      * Update order status
      */
-    public function updateOrderStatus(User $user, $orderId, string $status, ?string $notes = null): bool;
+    public function updateOrderStatus(User $user, $orderId, string $status, ?string $notes = null): array;
 
     /**
      * Confirm an order

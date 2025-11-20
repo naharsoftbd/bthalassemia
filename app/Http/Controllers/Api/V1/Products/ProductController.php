@@ -42,9 +42,12 @@ class ProductController extends BaseController
             ->setStatusCode(201);;
     }
 
-    public function show(Product $product)
+    public function show($id)
     {
-        return new ProductResource($product->load('variants'));
+        $product =$this->productService->find($id);
+        return (new ProductResource($product->load('variants')))
+            ->response()
+            ->setStatusCode(201);;
     }
 
     public function update(UpdateProductRequest $request, $id)

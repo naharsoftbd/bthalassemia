@@ -29,23 +29,23 @@ class UpdateOrderRequest extends FormRequest
             'status' => [
                 'sometimes',
                 'string',
-                Rule::in(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']),
+                Rule::in(['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded']),
                 function ($attribute, $value, $fail) use ($order) {
                     // Prevent status regression
                     $statusHierarchy = [
-                        'pending' => 1,
-                        'confirmed' => 2,
-                        'processing' => 3,
-                        'shipped' => 4,
-                        'delivered' => 5,
-                        'cancelled' => 0,
-                        'refunded' => 0,
+                        'Pending' => 1,
+                        'Confirmed' => 2,
+                        'Processing' => 3,
+                        'Shipped' => 4,
+                        'Delivered' => 5,
+                        'Cancelled' => 0,
+                        'Refunded' => 0,
                     ];
 
-                    $currentStatusLevel = $statusHierarchy[$order->status] ?? 0;
+                    $currentStatusLevel = $statusHierarchy[$order?->status] ?? 0;
                     $newStatusLevel = $statusHierarchy[$value] ?? 0;
 
-                    if ($newStatusLevel < $currentStatusLevel && $value !== 'cancelled' && $value !== 'refunded') {
+                    if ($newStatusLevel < $currentStatusLevel && $value !== 'Cancelled' && $value !== 'Refunded') {
                         $fail('Cannot revert order status to a previous state.');
                     }
                 },
@@ -179,7 +179,7 @@ class UpdateOrderRequest extends FormRequest
     protected function validateOrderCanBeUpdated($order): bool
     {
         // Cannot update cancelled or refunded orders
-        if (in_array($order->status, ['cancelled', 'refunded'])) {
+        if (in_array($order->status, ['Cancelled', 'Refunded'])) {
             return false;
         }
 
@@ -198,8 +198,8 @@ class UpdateOrderRequest extends FormRequest
     {
         // Customers can only cancel their own pending orders
         if (auth()->user()->hasRole('customer')) {
-            return $newStatus === 'cancelled' &&
-                   $order->status === 'pending' &&
+            return $newStatus === 'Cancelled' &&
+                   $order->status === 'Pending' &&
                    $order->user_id === auth()->id();
         }
 
